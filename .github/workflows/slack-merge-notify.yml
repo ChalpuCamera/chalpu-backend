@@ -1,0 +1,17 @@
+name: Slack Notify on PR Merge
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  notify:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack Message (Clean Style)
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{
+              "text": "✔️ PR #${{ github.event.pull_request.number }}이 `${{ github.event.pull_request.base.ref }}` 브랜치에 머지되었습니다.\n머지한 사람: ${{ github.actor }}\n<${{ github.event.pull_request.html_url }}|PR 보러가기>"
+            }' ${{ secrets.SLACK_WEBHOOK_URL }}
