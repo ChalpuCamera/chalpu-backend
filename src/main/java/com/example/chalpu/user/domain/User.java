@@ -5,6 +5,7 @@ import com.example.chalpu.oauth.model.AuthProvider;
 import com.example.chalpu.oauth.model.RefreshToken;
 import jakarta.persistence.*;
 import lombok.*;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "users")
@@ -17,16 +18,28 @@ public class User extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
     private Long id;
 
-    private String name;
-    
-    private String nickname;
-    
+    @Column(length = 100, unique = true, nullable = false)
     private String email;
-    
-    private String mdn;
-    
+
+    @Column(length = 100, nullable = false)
+    private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
+    private AuthProvider providerType;
+
+    @Column(length = 100, nullable = false)
+    private String providerUserId;
+
+    @Column(length = 20, unique = true)
+    private String phone;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+
     @Column(name = "social_id")
     private String socialId;
     
@@ -44,9 +57,6 @@ public class User extends BaseTimeEntity {
     
     // 프로필 이미지 URL
     private String picture;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private RefreshToken refreshToken;
 
     // OAuth 정보 업데이트 (기존 사용자)
     public void updateOAuth2Info(String name, String picture) {
