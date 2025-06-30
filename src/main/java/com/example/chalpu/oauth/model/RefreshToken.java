@@ -4,10 +4,7 @@ import com.example.chalpu.common.entity.BaseTimeEntity;
 import com.example.chalpu.user.domain.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "auth_token")
@@ -25,7 +22,7 @@ public class RefreshToken extends BaseTimeEntity {
     private String refreshToken;
 
     @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
 }

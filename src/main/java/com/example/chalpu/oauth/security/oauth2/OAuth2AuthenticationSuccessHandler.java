@@ -3,6 +3,7 @@ package com.example.chalpu.oauth.security.oauth2;
 import com.example.chalpu.oauth.dto.TokenDTO;
 import com.example.chalpu.oauth.security.jwt.JwtTokenProvider;
 import com.example.chalpu.oauth.security.jwt.UserDetailsImpl;
+import com.example.chalpu.oauth.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

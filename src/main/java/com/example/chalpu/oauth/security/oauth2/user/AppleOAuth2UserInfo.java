@@ -1,5 +1,7 @@
 package com.example.chalpu.oauth.security.oauth2.user;
 
+import org.springframework.util.StringUtils;
+
 import java.util.Map;
 
 public class AppleOAuth2UserInfo extends OAuth2UserInfo {

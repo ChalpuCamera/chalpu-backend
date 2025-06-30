@@ -2,9 +2,9 @@ package com.example.chalpu.oauth.security.oauth2;
 
 import com.example.chalpu.common.exception.AuthException;
 import com.example.chalpu.common.exception.ErrorMessage;
-import com.example.chalpu.common.exception.OAuth2AuthenticationProcessingException;
 import com.example.chalpu.oauth.model.AuthProvider;
 import com.example.chalpu.oauth.security.jwt.UserDetailsImpl;
+import com.example.chalpu.oauth.security.oauth2.exception.OAuth2AuthenticationProcessingException;
 import com.example.chalpu.oauth.security.oauth2.user.OAuth2UserInfo;
 import com.example.chalpu.oauth.security.oauth2.user.OAuth2UserInfoFactory;
 import com.example.chalpu.user.domain.Role;
@@ -80,7 +80,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             validateEmail(appleUserInfo);
 
             // 사용자 조회 또는 생성 (Find or create user)
-            return findOrCreateUser(appleUserInfo, "apple");
+            User user = findOrCreateUser(appleUserInfo, "apple");
+            
+            return user;
         } catch (OAuth2AuthenticationProcessingException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -89,6 +91,56 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
     }
 
+    /**
+     * Google 사용자 정보 처리 (ID Token 기반)
+     */
+    public User processGoogleUser(OAuth2UserInfo googleUserInfo) {
+        try {
+            validateEmail(googleUserInfo);
+            User user = findOrCreateUser(googleUserInfo, "google");
+            
+            return user;
+        } catch (OAuth2AuthenticationProcessingException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Google 사용자 처리 중 오류 발생: {}", ex.getMessage());
+            throw new AuthException(ErrorMessage.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Kakao 사용자 정보 처리 (액세스 토큰 기반)
+     */
+    public User processKakaoUser(OAuth2UserInfo kakaoUserInfo) {
+        try {
+            validateEmail(kakaoUserInfo);
+            User user = findOrCreateUser(kakaoUserInfo, "kakao");
+            
+            return user;
+        } catch (OAuth2AuthenticationProcessingException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Kakao 사용자 처리 중 오류 발생: {}", ex.getMessage());
+            throw new AuthException(ErrorMessage.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Naver 사용자 정보 처리 (액세스 토큰 기반)
+     */
+    public User processNaverUser(OAuth2UserInfo naverUserInfo) {
+        try {
+            validateEmail(naverUserInfo);
+            User user = findOrCreateUser(naverUserInfo, "naver");
+            
+            return user;
+        } catch (OAuth2AuthenticationProcessingException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Naver 사용자 처리 중 오류 발생: {}", ex.getMessage());
+            throw new AuthException(ErrorMessage.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     /**
      * 이메일 유효성 검증
@@ -107,7 +159,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private User findOrCreateUser(OAuth2UserInfo oAuth2UserInfo, String registrationId) {
         AuthProvider provider = AuthProvider.valueOf(registrationId.toUpperCase());
         
-        // 먼저 이메일로 사용자 조회
+        // 삭제된 사용자 포함하여 이메일로 사용자 조회
         Optional<User> userOptional = userRepository.findByEmail(oAuth2UserInfo.getEmail());
 
         // 이메일로 사용자를 찾았으면
@@ -158,4 +210,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         log.info("기존 OAuth2 사용자 정보 업데이트: {}", existingUser.getEmail());
         return userRepository.save(existingUser);
     }
+
+
 }

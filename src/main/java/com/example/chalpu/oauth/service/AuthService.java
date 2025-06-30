@@ -3,14 +3,19 @@ package com.example.chalpu.oauth.service;
 import com.example.chalpu.common.exception.AuthException;
 import com.example.chalpu.common.exception.ErrorMessage;
 import com.example.chalpu.common.exception.UserException;
+
 import com.example.chalpu.oauth.dto.AccessTokenDTO;
 import com.example.chalpu.oauth.dto.RefreshTokenDTO;
+import com.example.chalpu.oauth.dto.TokenDTO;
 import com.example.chalpu.oauth.security.jwt.JwtTokenProvider;
+import com.example.chalpu.oauth.security.jwt.UserDetailsImpl;
 import com.example.chalpu.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -31,12 +36,12 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(RefreshTokenDTO refreshToken) {
-        if (refreshToken != null) {
-            refreshTokenService.deleteRefreshToken(refreshToken.getRefreshToken());
-            log.info("로그아웃 완료");
-        }
+    public void logout(Long userId) {
+        refreshTokenService.deleteRefreshTokenByUserId(userId);
+        log.info("사용자 {} 로그아웃 완료", userId);
     }
+
+
 
     // 공통 검증 로직
     private User validateAndGetUser(String refreshToken) {
