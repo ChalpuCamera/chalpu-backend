@@ -62,7 +62,7 @@ jobs:
               echo "실행 중인 애플리케이션이 없습니다."
             fi
           
-            echo "===== 새 애플리케이션 시작 ====="
+            echo "==== 새 애플리케이션 시작 ===="
             nohup java -jar app.jar > app.log 2>&1 &
           
             sleep 2
