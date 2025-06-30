@@ -41,10 +41,10 @@ jobs:
           
           echo "===== JAR 파일 EC2로 배포 중... ====="
           scp -o ConnectTimeout=10 -o StrictHostKeyChecking=no -i private_key.pem \
-            app.jar ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/
+            app.jar ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/
           
           ssh -o ConnectTimeout=10 -o BatchMode=yes -o StrictHostKeyChecking=no -i private_key.pem \
-            ec2-user@${{ secrets.EC2_HOST }} << 'EOL'
+            ubuntu@${{ secrets.EC2_HOST }} << 'EOL'
           
             echo "===== 기존 애플리케이션 중지 ====="
             if pgrep -f "app.jar" > /dev/null; then
