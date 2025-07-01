@@ -25,6 +25,8 @@ public class Menu {
     private String menuName;
 
     private String description;
+
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(nullable = false, updatable = false)

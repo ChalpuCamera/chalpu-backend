@@ -27,5 +27,6 @@ public class MenuItem {
     private FoodItem foodItem;
 
     @Column(name = "display_order", nullable = false)
+    @Builder.Default
     private Integer displayOrder = 1;
 } 

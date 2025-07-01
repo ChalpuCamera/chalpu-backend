@@ -30,6 +30,7 @@ public class FoodItem {
     private String ingredients;
     private String cookingMethod;
     private BigDecimal price;
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(nullable = false, updatable = false)

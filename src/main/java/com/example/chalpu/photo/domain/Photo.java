@@ -46,7 +46,10 @@ public class Photo {
     @Column(nullable = false, updatable = false)
     private Timestamp uploadDate;
 
+    @Builder.Default
     private Boolean isFeatured = false;
+
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(nullable = false, updatable = false)

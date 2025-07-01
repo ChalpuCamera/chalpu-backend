@@ -38,6 +38,7 @@ public class User extends BaseTimeEntity {
     private String phone;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(name = "social_id")

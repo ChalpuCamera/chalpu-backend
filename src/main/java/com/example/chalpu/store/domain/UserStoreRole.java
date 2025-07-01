@@ -34,6 +34,7 @@ public class UserStoreRole {
     private BigDecimal ownershipPercentage;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(nullable = false, updatable = false)
