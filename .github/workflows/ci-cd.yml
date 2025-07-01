@@ -30,20 +30,7 @@ jobs:
         run: cp build/libs/chalpu-0.0.1-SNAPSHOT.jar app.jar
 
       # main 또는 develop 브랜치 푸시일 때만 배포
-      - name: Deploy JAR to EC2
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "app.jar"
-          target: "/home/ubuntu/"
-          strip_components: 0
-          overwrite: true
-          timeout: 300s
-
-      - name: Deploy and Restart Application
+      - name: Deploy to EC2
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -52,24 +39,18 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
           
+          echo "===== JAR 파일 EC2로 배포 중... ====="
+          scp -o ConnectTimeout=10 -o StrictHostKeyChecking=no -i private_key.pem \
+            app.jar ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/
+          
           ssh -o ConnectTimeout=10 -o BatchMode=yes -o StrictHostKeyChecking=no -i private_key.pem \
             ubuntu@${{ secrets.EC2_HOST }} << 'EOL'
-          
-            echo "===== 파일 수신 확인 ====="
-            if [ -f "/home/ubuntu/app.jar" ]; then
-              echo "JAR 파일이 성공적으로 수신되었습니다!"
-              echo "파일 크기: $(ls -lh /home/ubuntu/app.jar | awk '{print $5}')"
-              echo "파일 수정 시간: $(ls -la /home/ubuntu/app.jar | awk '{print $6, $7, $8}')"
-            else
-              echo "JAR 파일이 수신되지 않았습니다!"
-              exit 1
-            fi
           
             echo "===== 기존 애플리케이션 중지 ====="
             if pgrep -f "app.jar" > /dev/null; then
               echo "기존 애플리케이션을 중지합니다..."
               pkill -f "app.jar"
-              sleep 2
+              sleep 3
           
               if pgrep -f "app.jar" > /dev/null; then
                 echo "강제 종료합니다..."
@@ -81,32 +62,15 @@ jobs:
               echo "실행 중인 애플리케이션이 없습니다."
             fi
           
-            echo "==== 새 애플리케이션 시작 ===="
-            echo "현재 디렉토리: $(pwd)"
-            echo "JAR 파일 존재 확인: $(ls -la app.jar)"
-            echo "Java 버전: $(java -version 2>&1)"
-            echo "메모리 상태: $(free -h)"
-            
-            echo "애플리케이션 시작 시도..."
-            nohup java -jar app.jar > app.log 2>&1 &
-            
-            echo "nohup 명령어 실행 완료, PID: $!"
-            echo "1초 대기 후 초기 상태 확인..."
-            sleep 1
-            
-            if [ -f app.log ]; then
-              echo "로그 파일 생성됨, 초기 내용:"
-              head -10 app.log
-            else
-              echo "로그 파일이 생성되지 않음"
-            fi
-
+            echo "===== 새 애플리케이션 시작 ====="
+            source ~/.bashrc
+            nohup java -jar -Dspring.profiles.active=prod app.jar > app.log 2>&1 &
+          
+            sleep 5
+          
             echo "===== 애플리케이션 상태 확인 ====="
-            echo "추가 10초 대기 중..."
-            sleep 10
-            
             if pgrep -f "app.jar" > /dev/null; then
-              echo "애플리케이션이 성공적으로 시작되었습니다"
+              echo "애플리케이션이 성공적으로 시작되었습니다."
               echo "프로세스 ID: $(pgrep -f 'app.jar')"
           
               # 포트 확인
@@ -126,7 +90,7 @@ jobs:
             fi
             echo "===== 배포 완료 ====="
           EOL
-          
+  
           # 키 파일 삭제
           rm -f private_key.pem
-          echo "배포가 완료되었습니다."
+          echo "배포가 성공적으로 완료되었습니다!"
