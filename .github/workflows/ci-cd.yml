@@ -32,7 +32,7 @@ jobs:
       # main 또는 develop 브랜치 푸시일 때만 배포
       - name: Deploy JAR to EC2
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
-        uses: appleboy/scp-action@v1.0.1
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
