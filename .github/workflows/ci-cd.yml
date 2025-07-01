@@ -80,7 +80,7 @@ jobs:
             echo "==== 새 애플리케이션 시작 ===="
             nohup java -jar app.jar > app.log 2>&1 &
 
-            sleep 2
+            sleep 5
 
             echo "===== 애플리케이션 상태 확인 ====="
             if pgrep -f "app.jar" > /dev/null; then
