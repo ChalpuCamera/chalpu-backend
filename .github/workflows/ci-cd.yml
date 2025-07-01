@@ -84,7 +84,7 @@ jobs:
 
             echo "===== 애플리케이션 상태 확인 ====="
             if pgrep -f "app.jar" > /dev/null; then
-              echo "애플리케이션이 성공적으로 시작되었습니다."
+              echo "애플리케이션이 성공적으로 시작되었습니다"
               echo "프로세스 ID: $(pgrep -f 'app.jar')"
 
               # 포트 확인
