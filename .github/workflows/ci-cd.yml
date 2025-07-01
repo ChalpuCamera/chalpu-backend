@@ -40,7 +40,7 @@ jobs:
           chmod 600 private_key.pem
           
           echo "===== JAR 파일 EC2로 배포 중... ====="
-          scp -o ConnectTimeout=10 -o StrictHostKeyChecking=no -i private_key.pem \
+          scp -vvv -o ConnectTimeout=10 -o StrictHostKeyChecking=no -i private_key.pem \
             app.jar ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/
           
           ssh -o ConnectTimeout=10 -o BatchMode=yes -o StrictHostKeyChecking=no -i private_key.pem \
