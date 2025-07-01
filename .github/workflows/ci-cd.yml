@@ -63,7 +63,6 @@ jobs:
             fi
           
             echo "===== 새 애플리케이션 시작 ====="
-            source ~/.bashrc
             nohup java -jar -Dspring.profiles.active=prod app.jar > app.log 2>&1 &
           
             sleep 5
