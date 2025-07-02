@@ -90,8 +90,9 @@ public class GoogleAuthController {
         // 2. OAuth2UserInfo 객체 생성
         OAuth2UserInfo oAuth2UserInfo = new GoogleOAuth2UserInfo(payload);
 
-        // 3. 사용자 조회 또는 생성
-        User user = customOAuth2UserService.processGoogleUser(oAuth2UserInfo);
+        // 3. 사용자 조회 또는 생성 (FCM 토큰 등록 포함)
+        User user = customOAuth2UserService.processOAuth2User(oAuth2UserInfo, "google", 
+                request.getFcmToken(), request.getDeviceType());
 
         // 4. Access Token과 Refresh Token 생성
         TokenDTO tokenDTO = jwtTokenProvider.generateTokens(user.getId(), user.getEmail());

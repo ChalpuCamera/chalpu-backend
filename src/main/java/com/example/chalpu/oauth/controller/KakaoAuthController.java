@@ -89,14 +89,13 @@ public class KakaoAuthController {
         // 2. OAuth2UserInfo 객체 생성
         OAuth2UserInfo oAuth2UserInfo = new KakaoOAuth2UserInfo(kakaoUserInfo);
         
-        // 3. 사용자 조회 또는 생성
-        User user = customOAuth2UserService.processKakaoUser(oAuth2UserInfo);
+        // 3. 사용자 조회 또는 생성 (FCM 토큰 등록 포함)
+        User user = customOAuth2UserService.processOAuth2User(oAuth2UserInfo, "kakao", 
+                request.getFcmToken(), request.getDeviceType());
         
         // 4. Access Token과 Refresh Token 생성
         TokenDTO tokenDTO = jwtTokenProvider.generateTokens(user.getId(), user.getEmail());
-        
 
-        
         log.info("Kakao 모바일 로그인 성공: userId={}, email={}, name={}", user.getId(), user.getEmail(), user.getName());
         
         return ResponseEntity.ok(ApiResponse.success(new LoginResponse(tokenDTO, user.getId())));
