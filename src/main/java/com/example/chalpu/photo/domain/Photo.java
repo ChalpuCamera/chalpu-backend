@@ -52,4 +52,4 @@ public class Photo extends BaseTimeEntity {
 
     @Builder.Default
     private Boolean isActive = true;
-} 
+}

@@ -24,10 +24,10 @@ public class User extends BaseTimeEntity {
     @Column(length = 100, unique = true, nullable = false)
     private String email;
 
-    @Column(length = 100, nullable = false)
+    @Column(length = 100)
     private String name;
 
-    @Column(length = 100, nullable = false)
+    @Column(length = 100)
     private String providerUserId;
 
     @Column(length = 20, unique = true)
