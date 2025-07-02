@@ -1,5 +1,6 @@
 package com.example.chalpu.photo.domain;
 
+import com.example.chalpu.common.entity.BaseTimeEntity;
 import com.example.chalpu.user.domain.User;
 import com.example.chalpu.fooditem.domain.FoodItem;
 import com.example.chalpu.store.domain.Store;
@@ -14,7 +15,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Photo {
+public class Photo extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "photo_id")
@@ -51,10 +52,4 @@ public class Photo {
 
     @Builder.Default
     private Boolean isActive = true;
-
-    @Column(nullable = false, updatable = false)
-    private Timestamp createdAt;
-
-    @Column(nullable = false)
-    private Timestamp updatedAt;
 } 

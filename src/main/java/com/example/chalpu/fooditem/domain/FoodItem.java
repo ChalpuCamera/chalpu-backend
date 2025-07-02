@@ -1,9 +1,9 @@
 package com.example.chalpu.fooditem.domain;
 
+import com.example.chalpu.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 
 import com.example.chalpu.store.domain.Store;
 
@@ -13,7 +13,7 @@ import com.example.chalpu.store.domain.Store;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FoodItem {
+public class FoodItem extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "food_id")
@@ -32,10 +32,4 @@ public class FoodItem {
     private BigDecimal price;
     @Builder.Default
     private Boolean isActive = true;
-
-    @Column(nullable = false, updatable = false)
-    private Timestamp createdAt;
-
-    @Column(nullable = false)
-    private Timestamp updatedAt;
 } 

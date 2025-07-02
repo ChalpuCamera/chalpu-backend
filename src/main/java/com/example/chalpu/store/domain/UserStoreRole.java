@@ -1,9 +1,11 @@
 package com.example.chalpu.store.domain;
 
+import com.example.chalpu.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
+import com.example.chalpu.user.domain.User;
+
 
 @Entity
 @Table(name = "user_store_roles")
@@ -11,14 +13,14 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserStoreRole {
+public class UserStoreRole extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 고유 PK
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private com.example.chalpu.user.domain.User user;
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "store_id", nullable = false)
@@ -33,10 +35,4 @@ public class UserStoreRole {
     @Column(nullable = false)
     @Builder.Default
     private Boolean isActive = true;
-
-    @Column(nullable = false, updatable = false)
-    private Timestamp createdAt;
-
-    @Column(nullable = false)
-    private Timestamp updatedAt;
 } 

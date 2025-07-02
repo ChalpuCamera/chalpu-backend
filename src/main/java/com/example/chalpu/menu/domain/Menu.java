@@ -1,8 +1,8 @@
 package com.example.chalpu.menu.domain;
 
+import com.example.chalpu.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import java.sql.Timestamp;
 import com.example.chalpu.store.domain.Store;
 
 @Entity
@@ -11,7 +11,7 @@ import com.example.chalpu.store.domain.Store;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Menu {
+public class Menu extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "menu_id")
@@ -28,10 +28,4 @@ public class Menu {
 
     @Builder.Default
     private Boolean isActive = true;
-
-    @Column(nullable = false, updatable = false)
-    private Timestamp createdAt;
-
-    @Column(nullable = false)
-    private Timestamp updatedAt;
 } 

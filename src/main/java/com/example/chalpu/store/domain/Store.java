@@ -1,8 +1,10 @@
 package com.example.chalpu.store.domain;
 
+import com.example.chalpu.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import java.sql.Timestamp;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
 @Table(name = "stores")
@@ -10,7 +12,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Store {
+public class Store extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "store_id")
@@ -19,21 +21,18 @@ public class Store {
     @Column(length = 100, nullable = false)
     private String storeName;
 
+    @Schema(description = "가게 유형 (한식, 양식, 중식)")
     @Column(length = 50)
     private String businessType;
 
     @Column(nullable = false)
     private String address;
 
+    @Schema(description = "가게 번호")
     @Column(length = 20)
     private String phone;
 
+    @Schema(description = "사업자 등록번호")
     @Column(length = 50, unique = true)
     private String businessRegistrationNumber;
-
-    @Column(nullable = false, updatable = false)
-    private Timestamp createdAt;
-
-    @Column(nullable = false)
-    private Timestamp updatedAt;
 } 
