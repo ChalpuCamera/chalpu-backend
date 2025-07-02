@@ -11,6 +11,7 @@ import com.example.chalpu.oauth.security.oauth2.user.NaverOAuth2UserInfo;
 
 import com.example.chalpu.oauth.security.oauth2.user.OAuth2UserInfo;
 import com.example.chalpu.oauth.service.NaverOAuthService;
+import com.example.chalpu.oauth.service.RefreshTokenService;
 import com.example.chalpu.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,6 +32,7 @@ public class NaverAuthController {
     private final NaverOAuthService naverOAuthService;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/login")
     @Operation(
@@ -95,6 +97,9 @@ public class NaverAuthController {
         
         // 4. Access Token과 Refresh Token 생성
         TokenDTO tokenDTO = jwtTokenProvider.generateTokens(user.getId(), user.getEmail());
+        
+        // 5. Refresh Token DB에 저장
+        refreshTokenService.saveRefreshToken(tokenDTO.getRefreshToken(), user.getId());
 
         log.info("Naver 모바일 로그인 성공: userId={}, email={}, name={}", user.getId(), user.getEmail(), user.getName());
         

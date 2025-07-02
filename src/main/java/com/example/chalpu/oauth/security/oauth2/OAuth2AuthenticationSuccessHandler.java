@@ -4,6 +4,7 @@ import com.example.chalpu.oauth.dto.TokenDTO;
 import com.example.chalpu.oauth.security.jwt.JwtTokenProvider;
 import com.example.chalpu.oauth.security.jwt.UserDetailsImpl;
 import com.example.chalpu.oauth.service.AuthService;
+import com.example.chalpu.oauth.service.RefreshTokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final JwtTokenProvider authService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${oauth2.redirect.success-url}")
     private String redirectSuccessUrl;
@@ -40,6 +42,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
             // AuthService를 통해 토큰 생성 (UserDetailsImpl 직접 전달)
             TokenDTO tokenDTO = jwtTokenProvider.generateTokens(userDetails.getId(),userDetails.getEmail());
+            
+            // Refresh Token DB에 저장
+            refreshTokenService.saveRefreshToken(tokenDTO.getRefreshToken(), userDetails.getId());
 
             log.info("OAuth2 로그인 성공: userId={}, email={}, provider={}", 
                     userDetails.getId(), userDetails.getEmail(), userDetails.getProvider());

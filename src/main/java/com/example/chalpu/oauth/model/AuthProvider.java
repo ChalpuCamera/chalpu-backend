@@ -42,7 +42,6 @@ public enum AuthProvider {
                 return true;
             }
         }
-
         return false;
     }
 }
