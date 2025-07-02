@@ -25,4 +25,9 @@ public class RefreshToken extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
+    
+    // 리프레시 토큰 업데이트 메서드
+    public void updateRefreshToken(String newRefreshToken) {
+        this.refreshToken = newRefreshToken;
+    }
 }
