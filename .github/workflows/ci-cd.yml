@@ -88,7 +88,6 @@ jobs:
             echo "메모리 상태: $(free -h)"
             
             echo "애플리케이션 시작 시도..."
-            source ~/.bashrc
             nohup java -jar app.jar > app.log 2>&1 &
             
             echo "nohup 명령어 실행 완료, PID: $!"
