@@ -69,3 +69,5 @@ oauth2:
     success-url: ${OAUTH2_REDIRECT_SUCCESS_URL}
     failure-url: ${OAUTH2_REDIRECT_FAILURE_URL}
 
+fcm:
+  service-account-key-path: ${FCM_SERVICE_ACCOUNT_KEY_PATH}
