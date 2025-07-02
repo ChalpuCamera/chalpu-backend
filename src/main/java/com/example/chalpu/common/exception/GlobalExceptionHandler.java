@@ -64,6 +64,50 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * StoreException 처리
+     */
+    @ExceptionHandler(StoreException.class)
+    public ResponseEntity<ApiResponse<Void>> handleStoreException(StoreException ex) {
+        ErrorMessage errorMessage = ex.getErrorMessage();
+        logger.error("StoreException: {}", errorMessage.getMessage());
+        return ResponseEntity.status(errorMessage.getHttpStatus())
+                .body(ApiResponse.error(errorMessage.getHttpStatus().value(), errorMessage.getMessage()));
+    }
+
+    /**
+     * MenuException 처리
+     */
+    @ExceptionHandler(MenuException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMenuException(MenuException ex) {
+        ErrorMessage errorMessage = ex.getErrorMessage();
+        logger.error("MenuException: {}", errorMessage.getMessage());
+        return ResponseEntity.status(errorMessage.getHttpStatus())
+                .body(ApiResponse.error(errorMessage.getHttpStatus().value(), errorMessage.getMessage()));
+    }
+
+    /**
+     * FoodException 처리
+     */
+    @ExceptionHandler(FoodException.class)
+    public ResponseEntity<ApiResponse<Void>> handleFoodException(FoodException ex) {
+        ErrorMessage errorMessage = ex.getErrorMessage();
+        logger.error("FoodException: {}", errorMessage.getMessage());
+        return ResponseEntity.status(errorMessage.getHttpStatus())
+                .body(ApiResponse.error(errorMessage.getHttpStatus().value(), errorMessage.getMessage()));
+    }
+
+    /**
+     * PhotoException 처리
+     */
+    @ExceptionHandler(PhotoException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePhotoException(PhotoException ex) {
+        ErrorMessage errorMessage = ex.getErrorMessage();
+        logger.error("PhotoException: {}", errorMessage.getMessage());
+        return ResponseEntity.status(errorMessage.getHttpStatus())
+                .body(ApiResponse.error(errorMessage.getHttpStatus().value(), errorMessage.getMessage()));
+    }
+
+    /**
      * 유효성 검사 실패 예외 처리
      */
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})

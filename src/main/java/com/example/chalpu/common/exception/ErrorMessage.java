@@ -49,10 +49,39 @@ public enum ErrorMessage {
     // 리프레쉬 토큰 에러
     REFRESH_TOKEN_DELETE_ERROR(BAD_REQUEST, "토큰 삭제에 실패했습니다."),
 
-
+    // 매장 관련 에러
+    STORE_NOT_FOUND(NOT_FOUND, "매장을 찾을 수 없습니다."),
+    STORE_ACCESS_DENIED(FORBIDDEN, "매장 접근 권한이 없습니다."),
+    STORE_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "매장 생성에 실패했습니다."),
+    STORE_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "매장 정보 수정에 실패했습니다."),
+    STORE_OWNER_REQUIRED(FORBIDDEN, "매장 소유자 권한이 필요합니다."),
+    STORE_MEMBER_NOT_FOUND(NOT_FOUND, "매장 구성원을 찾을 수 없습니다."),
+    STORE_MEMBER_ALREADY_EXISTS(BAD_REQUEST, "이미 매장 구성원으로 등록되어 있습니다."),
+    
+    // 메뉴 관련 에러
+    MENU_NOT_FOUND(NOT_FOUND, "메뉴를 찾을 수 없습니다."),
+    MENU_ACCESS_DENIED(FORBIDDEN, "메뉴 접근 권한이 없습니다."),
+    MENU_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메뉴 생성에 실패했습니다."),
+    MENU_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메뉴 수정에 실패했습니다."),
+    MENU_ITEM_NOT_FOUND(NOT_FOUND, "메뉴 항목을 찾을 수 없습니다."),
+    MENU_ITEM_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메뉴 항목 생성에 실패했습니다."),
+    
+    // 음식 관련 에러
+    FOOD_NOT_FOUND(NOT_FOUND, "음식을 찾을 수 없습니다."),
+    FOOD_ACCESS_DENIED(FORBIDDEN, "음식 접근 권한이 없습니다."),
+    FOOD_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "음식 등록에 실패했습니다."),
+    FOOD_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "음식 정보 수정에 실패했습니다."),
+    
+    // 사진 관련 에러
+    PHOTO_NOT_FOUND(NOT_FOUND, "사진을 찾을 수 없습니다."),
+    PHOTO_ACCESS_DENIED(FORBIDDEN, "사진 접근 권한이 없습니다."),
+    PHOTO_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "사진 업로드에 실패했습니다."),
+    PHOTO_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "사진 삭제에 실패했습니다."),
+    PHOTO_INVALID_FORMAT(BAD_REQUEST, "지원하지 않는 사진 형식입니다."),
+    PHOTO_SIZE_EXCEEDED(BAD_REQUEST, "사진 크기가 제한을 초과했습니다."),
+    PHOTO_FEATURE_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "대표 사진 설정에 실패했습니다."),
 
     // 알림 관련 에러
-
     NOTIFICATION_SERVICE_UNAVAILABLE(HttpStatus.INTERNAL_SERVER_ERROR, "알림 서비스를 사용할 수 없습니다."),
     NOTIFICATION_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "알림 전송에 실패했습니다."),
     NOTIFICATION_USER_NO_TOKENS(NOT_FOUND, "사용자의 활성화된 토큰이 없습니다."),
@@ -74,6 +103,22 @@ public enum ErrorMessage {
     INQUIRY_CATEGORY_INVALID(BAD_REQUEST, "잘못된 문의 카테고리입니다."),
     INQUIRY_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "문의 등록에 실패했습니다."),
     INQUIRY_REPLY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "문의 답변 등록에 실패했습니다."),
+
+    // FCM 관련 에러
+    FCM_TOKEN_INVALID_REQUEST(BAD_REQUEST, "FCM 토큰 요청 데이터가 유효하지 않습니다."),
+    FCM_TOKEN_NOT_FOUND(NOT_FOUND, "FCM 토큰을 찾을 수 없습니다."),
+    FCM_TOKEN_REGISTRATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FCM 토큰 등록에 실패했습니다."),
+    FCM_TOKEN_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FCM 토큰 업데이트에 실패했습니다."),
+    FCM_TOKEN_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FCM 토큰 삭제에 실패했습니다."),
+    FCM_DEVICE_TYPE_INVALID(BAD_REQUEST, "지원하지 않는 디바이스 타입입니다."),
+    FCM_TOKEN_ACCESS_DENIED(FORBIDDEN, "FCM 토큰에 대한 접근 권한이 없습니다."),
+    FCM_SERVICE_UNAVAILABLE(HttpStatus.INTERNAL_SERVER_ERROR, "FCM 서비스를 사용할 수 없습니다."),
+    FCM_NOTIFICATION_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "알림 전송에 실패했습니다."),
+    FCM_NOTIFICATION_INVALID_REQUEST(BAD_REQUEST, "알림 요청 데이터가 유효하지 않습니다."),
+    FCM_USER_NO_ACTIVE_TOKENS(NOT_FOUND, "사용자의 활성화된 FCM 토큰이 없습니다."),
+
+    // 알림 관련 에러
+    NOTIFICATION_FIREBASE_INIT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Firebase 초기화에 실패했습니다."),
 
     // 공통 에러
     INVALID_REQUEST(BAD_REQUEST, "잘못된 요청입니다."),
