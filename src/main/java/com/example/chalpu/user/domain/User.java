@@ -27,10 +27,6 @@ public class User extends BaseTimeEntity {
     @Column(length = 100, nullable = false)
     private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20, nullable = false)
-    private AuthProvider providerType;
-
     @Column(length = 100, nullable = false)
     private String providerUserId;
 
