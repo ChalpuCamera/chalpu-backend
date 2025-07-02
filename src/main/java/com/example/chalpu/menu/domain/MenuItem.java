@@ -5,10 +5,7 @@ import lombok.*;
 import com.example.chalpu.fooditem.domain.FoodItem;
 
 @Entity
-@Table(
-    name = "menu_items",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"menu_id", "food_id"})
-)
+@Table(name = "menu_items")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
