@@ -6,10 +6,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @Entity
-@Table(
-    name = "user_store_roles",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "store_id"})
-)
+@Table(name = "user_store_roles")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
