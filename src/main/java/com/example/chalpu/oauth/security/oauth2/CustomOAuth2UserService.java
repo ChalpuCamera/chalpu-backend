@@ -2,9 +2,11 @@ package com.example.chalpu.oauth.security.oauth2;
 
 import com.example.chalpu.common.exception.AuthException;
 import com.example.chalpu.common.exception.ErrorMessage;
+import com.example.chalpu.common.exception.OAuth2AuthenticationProcessingException;
+import com.example.chalpu.fcm.dto.FCMTokenRequest;
+import com.example.chalpu.fcm.service.FCMTokenService;
 import com.example.chalpu.oauth.model.AuthProvider;
 import com.example.chalpu.oauth.security.jwt.UserDetailsImpl;
-import com.example.chalpu.oauth.security.oauth2.exception.OAuth2AuthenticationProcessingException;
 import com.example.chalpu.oauth.security.oauth2.user.OAuth2UserInfo;
 import com.example.chalpu.oauth.security.oauth2.user.OAuth2UserInfoFactory;
 import com.example.chalpu.user.domain.Role;
@@ -13,6 +15,7 @@ import com.example.chalpu.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -32,6 +35,7 @@ import java.util.Optional;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final FCMTokenService fcmTokenService;
 
     /**
      * OAuth2 사용자 정보 로드
@@ -71,75 +75,38 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     /**
-     * Apple 사용자 정보 처리 (Apple용 별도 메서드)
-     * Process Apple user information manually (not through OAuth2 flow)
+     * OAuth2 제공자별 사용자 정보 처리 (통합 메서드)
+     * @param userInfo OAuth2 사용자 정보
+     * @param providerName 제공자 이름 (google, kakao, naver, apple 등)
+     * @param fcmToken FCM 토큰 (선택사항)
+     * @param deviceType 디바이스 타입 (선택사항)
+     * @return 처리된 사용자 엔티티
      */
-    public User processAppleUser(OAuth2UserInfo appleUserInfo) {
+    public User processOAuth2User(OAuth2UserInfo userInfo, String providerName, String fcmToken, String deviceType) {
         try {
-            // 이메일 확인 (Validate email)
-            validateEmail(appleUserInfo);
-
-            // 사용자 조회 또는 생성 (Find or create user)
-            User user = findOrCreateUser(appleUserInfo, "apple");
+            validateEmail(userInfo);
+            User user = findOrCreateUser(userInfo, providerName);
+            
+            // FCM 토큰 등록
+            registerFCMTokenIfPresent(user.getId(), fcmToken, deviceType);
             
             return user;
         } catch (OAuth2AuthenticationProcessingException ex) {
             throw ex;
         } catch (Exception ex) {
-            log.error("Apple 사용자 처리 중 오류 발생: {}", ex.getMessage());
+            log.error("{} 사용자 처리 중 오류 발생: {}", providerName, ex.getMessage());
             throw new AuthException(ErrorMessage.INTERNAL_SERVER_ERROR);
         }
     }
 
     /**
-     * Google 사용자 정보 처리 (ID Token 기반)
+     * OAuth2 제공자별 사용자 정보 처리 (기존 호환성을 위한 오버로드)
+     * @param userInfo OAuth2 사용자 정보
+     * @param providerName 제공자 이름 (google, kakao, naver, apple 등)
+     * @return 처리된 사용자 엔티티
      */
-    public User processGoogleUser(OAuth2UserInfo googleUserInfo) {
-        try {
-            validateEmail(googleUserInfo);
-            User user = findOrCreateUser(googleUserInfo, "google");
-            
-            return user;
-        } catch (OAuth2AuthenticationProcessingException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            log.error("Google 사용자 처리 중 오류 발생: {}", ex.getMessage());
-            throw new AuthException(ErrorMessage.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    /**
-     * Kakao 사용자 정보 처리 (액세스 토큰 기반)
-     */
-    public User processKakaoUser(OAuth2UserInfo kakaoUserInfo) {
-        try {
-            validateEmail(kakaoUserInfo);
-            User user = findOrCreateUser(kakaoUserInfo, "kakao");
-            
-            return user;
-        } catch (OAuth2AuthenticationProcessingException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            log.error("Kakao 사용자 처리 중 오류 발생: {}", ex.getMessage());
-            throw new AuthException(ErrorMessage.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    /**
-     * Naver 사용자 정보 처리 (액세스 토큰 기반)
-     */
-    public User processNaverUser(OAuth2UserInfo naverUserInfo) {
-        try {
-            validateEmail(naverUserInfo);
-            User user = findOrCreateUser(naverUserInfo, "naver");
-            
-            return user;
-        } catch (OAuth2AuthenticationProcessingException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            log.error("Naver 사용자 처리 중 오류 발생: {}", ex.getMessage());
-            throw new AuthException(ErrorMessage.INTERNAL_SERVER_ERROR);
-        }
+    public User processOAuth2User(OAuth2UserInfo userInfo, String providerName) {
+        return processOAuth2User(userInfo, providerName, null, null);
     }
 
     /**
@@ -192,8 +159,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .name(oAuth2UserInfo.getName())
                 .picture(oAuth2UserInfo.getImageUrl())
                 .socialId(oAuth2UserInfo.getId())
-                .role(Role.ROLE_USER)
+                .providerUserId(oAuth2UserInfo.getId())
                 .provider(provider)
+                .role(Role.ROLE_USER)
                 .build();
 
         log.info("새 OAuth2 사용자 등록: {}", user.getEmail());
@@ -211,5 +179,24 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return userRepository.save(existingUser);
     }
 
-
+    /**
+     * FCM 토큰 등록 (선택사항)
+     */
+    private void registerFCMTokenIfPresent(Long userId, String fcmToken, String deviceType) {
+        if (fcmToken != null && !fcmToken.trim().isEmpty() && 
+            deviceType != null && !deviceType.trim().isEmpty() && 
+            !"web".equalsIgnoreCase(deviceType)) {
+            try {
+                FCMTokenRequest fcmRequest = FCMTokenRequest.builder()
+                        .userId(userId)
+                        .fcmToken(fcmToken)
+                        .deviceType(deviceType)
+                        .build();
+                fcmTokenService.registerOrUpdateToken(fcmRequest);
+                log.info("FCM 토큰 등록 성공: userId={}, deviceType={}", userId, deviceType);
+            } catch (Exception e) {
+                log.warn("FCM 토큰 등록 실패 (로그인은 성공): userId={}, error={}", userId, e.getMessage());
+            }
+        }
+    }
 }

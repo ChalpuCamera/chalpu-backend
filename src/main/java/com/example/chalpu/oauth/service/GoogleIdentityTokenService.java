@@ -19,11 +19,11 @@ public class GoogleIdentityTokenService {
 
     private final GoogleIdTokenVerifier verifier;
 
-    public GoogleIdentityTokenService(@Value("${spring.security.oauth2.client.registration.google.client-id}") List<String> audience) {
+    public GoogleIdentityTokenService(@Value("${spring.security.oauth2.client.registration.google.client-id}") String clientId) {
         this.verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
-                .setAudience(audience)
+                .setAudience(Collections.singletonList(clientId))
                 .build();
-        log.info("GoogleIdTokenVerifier initialized for audiences: {}", audience);
+        log.info("GoogleIdTokenVerifier initialized for client-id: {}", clientId);
     }
 
     public GoogleIdToken.Payload verify(String idTokenString) {
