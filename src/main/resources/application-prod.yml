@@ -76,7 +76,7 @@ fcm:
 cloud:
   aws:
     s3:
-      bucket: chalpu-s3
+      bucket: chalpu-photo-bucket
     cloudfront:
       domain: https://cdn.chalpu.com 
     credentials:
