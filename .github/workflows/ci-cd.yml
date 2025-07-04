@@ -87,6 +87,9 @@ jobs:
             echo "Java 버전: $(java -version 2>&1)"
             echo "메모리 상태: $(free -h)"
             
+            echo "환경 변수 로드를 위해 /etc/profile을 명시적으로 source 합니다."
+            source /etc/profile
+            
             echo "애플리케이션 시작 시도..."
             nohup java -jar app.jar > app.log 2>&1 &
             
