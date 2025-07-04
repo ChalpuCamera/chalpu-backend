@@ -17,5 +17,6 @@ public class MenuItemRequest {
     private Long foodId;
     
     @Schema(description = "표시 순서", example = "1")
+    @Builder.Default
     private Integer displayOrder = 1;
 } 

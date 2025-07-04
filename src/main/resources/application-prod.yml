@@ -79,6 +79,7 @@ cloud:
       bucket: chalpu-photo-bucket
     cloudfront:
       domain: https://cdn.chalpu.com 
-    credentials:
-      access-key: ${S3_ACCESS_KEY}
-      secret-key: ${S3_SECRET_KEY} 
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false

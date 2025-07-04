@@ -30,6 +30,10 @@ public class FoodItemRequest {
     @Schema(description = "가격", example = "8000")
     private BigDecimal price;
     
-    @Schema(description = "활성화 여부", example = "true")
+    @Schema(description = "음식 재고")
+    private Integer stock;
+    
+    @Schema(description = "음식 활성화 여부")
+    @Builder.Default
     private Boolean isActive = true;
 } 
