@@ -74,6 +74,8 @@ public enum ErrorMessage {
     FOOD_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "음식 정보 수정에 실패했습니다."),
     
     // 사진 관련 에러
+    PRESIGNED_URL_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "사진 업로드를 위한 URL 생성에 실패했습니다."),
+    PHOTO_REGISTRATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "사진 정보 등록에 실패했습니다."),
     PHOTO_NOT_FOUND(NOT_FOUND, "사진을 찾을 수 없습니다."),
     PHOTO_ACCESS_DENIED(FORBIDDEN, "사진 접근 권한이 없습니다."),
     PHOTO_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "사진 업로드에 실패했습니다."),
