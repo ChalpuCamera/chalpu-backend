@@ -3,7 +3,10 @@ package com.example.chalpu.photo.controller;
 import com.example.chalpu.common.response.ApiResponse;
 import com.example.chalpu.common.response.PageResponse;
 import com.example.chalpu.oauth.security.jwt.UserDetailsImpl;
+import com.example.chalpu.photo.dto.PhotoPresignedUrlResponse;
+import com.example.chalpu.photo.dto.PhotoRegisterRequest;
 import com.example.chalpu.photo.dto.PhotoResponse;
+import com.example.chalpu.photo.dto.PhotoUploadRequest;
 import com.example.chalpu.photo.service.PhotoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -13,71 +16,66 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/foods/{foodId}/photos")
+@RequestMapping("/api/photos")
 @RequiredArgsConstructor
-@Tag(name = "Photo", description = "사진 관련 API")
+@Tag(name = "사진 API", description = "사진 관련 API")
 public class PhotoController {
 
     private final PhotoService photoService;
 
-    @PostMapping
-    @Operation(
-        summary = "음식 사진 업로드",
-        description = "특정 음식에 사진을 업로드합니다.",
-        security = { @SecurityRequirement(name = "bearerAuth") }
-    )
-    public ResponseEntity<ApiResponse<PhotoResponse>> uploadPhoto(
-            @PathVariable Long foodId,
-            @RequestParam("file") MultipartFile file,
-            @AuthenticationPrincipal UserDetailsImpl currentUser) {
-        PhotoResponse photo = photoService.uploadPhoto(foodId, file, currentUser.getId());
-        return ResponseEntity.ok(ApiResponse.success("사진 업로드가 완료되었습니다.", photo));
+    @Operation(summary = "Presigned URL 생성", description = """
+            클라이언트가 AWS S3에 파일을 직접 업로드하기 위해 사용하는 Presigned URL을 생성합니다.
+            
+            **클라이언트 처리 순서:**
+            1. 이 API를 호출하여 `presignedUrl`과 `s3Key`를 받습니다.
+            2. 받은 `presignedUrl`을 목적지로, 업로드할 파일의 원본 데이터를 body에 담아 **HTTP PUT** 요청을 보냅니다.
+               - **주의:** `Content-Type` 헤더에 반드시 실제 파일의 MIME 타입(예: `image/jpeg`)을 포함해야 합니다.
+            3. S3 업로드가 성공(HTTP 200 OK)하면, `/api/photos/register` API를 호출하여 업로드 완료 사실을 서버에 알립니다.
+               - 이때 응답으로 받았던 `s3Key`와 파일의 원본 이름 등 필요한 메타데이터를 함께 전송합니다.
+            """)
+    @PostMapping("/presigned-url")
+    public ApiResponse<PhotoPresignedUrlResponse> generatePresignedUrl(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody PhotoUploadRequest request) {
+        String username = userDetails.getUsername();
+        return ApiResponse.success(photoService.generatePresignedUrl(username, request));
     }
 
-    @GetMapping
-    @Operation(
-        summary = "음식 사진 목록",
-        description = """
-                특정 음식의 모든 사진 목록을 조회합니다.
-                
-                **페이지네이션 파라미터:**
-                - `page`: 페이지 번호 (0부터 시작, 기본값: 0)
-                - `size`: 페이지 크기 (기본값: 20)
-                - `sort`: 정렬 조건 (선택사항)
-                
-                **요청 예시:**
-                ```
-                GET /api/foods/{foodId}/photos?page=0&size=10&sort=uploadDate,desc&sort=fileName,asc
-                ```
-                위처럼 정렬 조건을 리스트로 줘도 되고 아래처럼 String으로 줘도 됩니다.
-                ```
-                GET /api/foods/{foodId}/photos?page=0&size=10&sort=uploadDate,desc
-                ```
-                """,
-        security = { @SecurityRequirement(name = "bearerAuth") }
-    )
-    public ResponseEntity<ApiResponse<PageResponse<PhotoResponse>>> getPhotos(
-            @PathVariable Long foodId,
-            @PageableDefault(size = 20) Pageable pageable) {
-        PageResponse<PhotoResponse> photos = photoService.getPhotos(foodId, pageable);
-        return ResponseEntity.ok(ApiResponse.success("사진 목록 조회가 완료되었습니다.", photos));
+    @Operation(summary = "사진 정보 등록", description = "S3에 업로드 완료 후, 파일 메타데이터를 서버에 등록합니다.")
+    @PostMapping("/register")
+    public ApiResponse<PhotoResponse> registerPhoto(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody PhotoRegisterRequest request) {
+        String username = userDetails.getUsername();
+        return ApiResponse.success(photoService.registerPhoto(username, request));
+    }
+    
+    @Operation(summary = "가게별 사진 목록 조회", description = "특정 가게에 속한 사진 목록을 페이지네이션하여 조회합니다.")
+    @GetMapping("/store/{storeId}")
+    public ApiResponse<PageResponse<PhotoResponse>> getPhotosByStore(
+            @PathVariable Long storeId,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ApiResponse.success(photoService.getPhotosByStore(storeId, pageable));
     }
 
-    @PatchMapping("/{photoId}/feature")
-    @Operation(
-        summary = "대표 사진 지정",
-        description = "특정 사진을 대표 사진으로 지정합니다.",
-        security = { @SecurityRequirement(name = "bearerAuth") }
-    )
-    public ResponseEntity<ApiResponse<PhotoResponse>> setFeaturedPhoto(
-            @PathVariable Long foodId,
-            @PathVariable Long photoId,
-            @AuthenticationPrincipal UserDetailsImpl currentUser) {
-        PhotoResponse photo = photoService.setFeaturedPhoto(foodId, photoId, currentUser.getId());
-        return ResponseEntity.ok(ApiResponse.success("대표 사진 지정이 완료되었습니다.", photo));
+    @Operation(summary = "사진 상세 조회", description = "특정 사진의 상세 정보를 조회합니다.")
+    @GetMapping("/{photoId}")
+    public ApiResponse<PhotoResponse> getPhoto(@PathVariable Long photoId) {
+        return ApiResponse.success(photoService.getPhoto(photoId));
+    }
+
+    @Operation(summary = "사진 삭제", description = "특정 사진을 삭제합니다.")
+    @DeleteMapping("/{photoId}")
+    public ApiResponse<Void> deletePhoto(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long photoId) {
+        String username = userDetails.getUsername();
+        photoService.deletePhoto(username, photoId);
+        return ApiResponse.success();
     }
 } 

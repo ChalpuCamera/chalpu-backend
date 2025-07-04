@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // 공개 경로
-                        .requestMatchers("/", "/login", "/login.html", "/error", "/favicon.ico").permitAll()
+                        .requestMatchers("/", "/login", "/login.html", "/error", "/favicon.ico","/util/token").permitAll()
                         .requestMatchers("/index.html","/test.html","/landing/**").permitAll()
                         .requestMatchers("/api/auth/refresh", "/api/auth/logout", "/api/auth/me").permitAll()
                         .requestMatchers("/api/test/**").permitAll() // 테스트용 엔드포인트 전체 허용

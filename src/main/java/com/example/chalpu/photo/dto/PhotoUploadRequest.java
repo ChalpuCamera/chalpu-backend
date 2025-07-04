@@ -10,12 +10,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "사진 업로드 요청")
+@Schema(description = "사진 업로드를 위한 Presigned URL 요청")
 public class PhotoUploadRequest {
-    
-    @Schema(description = "필터", example = "VINTAGE")
-    private String filter;
-    
-    @Schema(description = "설명", example = "맛있는 김치찌개 사진")
-    private String description;
-} 
+
+    @Schema(description = "업로드할 파일의 원본 이름", example = "kimchi-stew.jpg")
+    private String fileName;
+}

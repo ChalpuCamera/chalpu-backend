@@ -14,4 +14,6 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
     List<Photo> findByFoodItemId(Long foodId);
     
     Page<Photo> findByFoodItemId(Long foodId, Pageable pageable);
+
+    Page<Photo> findByStoreId(Long storeId, Pageable pageable);
 } 

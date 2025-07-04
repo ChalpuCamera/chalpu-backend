@@ -71,6 +71,23 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    /**
+     * 테스트용 Access Token 생성 (10년)
+     */
+    public String generateTestAccessToken(Long userId, String email) {
+        Instant now = Instant.now();
+        Instant expiration = now.plus(3650, ChronoUnit.DAYS); // 10 years
+
+        return Jwts.builder()
+                .setSubject(userId.toString())
+                .claim("email", email)
+                .claim("type", "access")
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(expiration))
+                .signWith(secretKey)
+                .compact();
+    }
+
     // 토큰에서 사용자 ID 추출
     public Long getUserIdFromToken(String token) {
         return Long.parseLong(getClaimsFromToken(token).getSubject());

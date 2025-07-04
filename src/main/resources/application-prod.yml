@@ -71,3 +71,14 @@ oauth2:
 
 fcm:
   service-account-key-path: ${FCM_SERVICE_ACCOUNT_KEY_PATH}
+
+
+cloud:
+  aws:
+    s3:
+      bucket: chalpu-s3
+    cloudfront:
+      domain: https://cdn.chalpu.com 
+    credentials:
+      access-key: ${S3_ACCESS_KEY}
+      secret-key: ${S3_SECRET_KEY} 
