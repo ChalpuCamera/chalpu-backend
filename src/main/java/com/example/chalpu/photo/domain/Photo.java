@@ -33,8 +33,8 @@ public class Photo extends BaseTimeEntity {
     @JoinColumn(name = "food_id")
     private FoodItem foodItem;
 
-    @Column(length = 500, nullable = false)
-    private String filePath;
+    @Column(length = 500, nullable = false, unique = true)
+    private String s3Key;
 
     @Column(length = 255, nullable = false)
     private String fileName;
@@ -43,9 +43,6 @@ public class Photo extends BaseTimeEntity {
     private Integer fileSize;
     private Integer imageWidth;
     private Integer imageHeight;
-
-    @Column(nullable = false, updatable = false)
-    private Timestamp uploadDate;
 
     @Builder.Default
     private Boolean isFeatured = false;
