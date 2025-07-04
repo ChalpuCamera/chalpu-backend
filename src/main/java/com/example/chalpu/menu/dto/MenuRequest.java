@@ -20,5 +20,6 @@ public class MenuRequest {
     private String description;
     
     @Schema(description = "활성화 여부", example = "true")
+    @Builder.Default
     private Boolean isActive = true;
 } 
