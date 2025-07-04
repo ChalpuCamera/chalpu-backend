@@ -1,7 +1,7 @@
 package com.example.chalpu.fooditem.controller;
 
 import com.example.chalpu.common.response.ApiResponse;
-import com.example.chalpu.fooditem.domain.FoodItem;
+import com.example.chalpu.fooditem.dto.FoodItemResponse;
 import com.example.chalpu.fooditem.service.FoodItemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -24,8 +24,8 @@ public class FoodItemController {
         description = "특정 음식의 상세 정보를 조회합니다.",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
-    public ResponseEntity<ApiResponse<FoodItem>> getFoodItem(@PathVariable Long foodId) {
-        FoodItem foodItem = foodItemService.getFoodItem(foodId);
+    public ResponseEntity<ApiResponse<FoodItemResponse>> getFoodItem(@PathVariable Long foodId) {
+        FoodItemResponse foodItem = foodItemService.getFoodItem(foodId);
         return ResponseEntity.ok(ApiResponse.success("음식 정보 조회가 완료되었습니다.", foodItem));
     }
 } 

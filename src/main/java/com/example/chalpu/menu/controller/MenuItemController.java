@@ -1,7 +1,8 @@
 package com.example.chalpu.menu.controller;
 
 import com.example.chalpu.common.response.ApiResponse;
-import com.example.chalpu.menu.domain.MenuItem;
+import com.example.chalpu.menu.dto.MenuItemRequest;
+import com.example.chalpu.menu.dto.MenuItemResponse;
 import com.example.chalpu.menu.service.MenuService;
 import com.example.chalpu.oauth.security.jwt.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,11 +27,11 @@ public class MenuItemController {
         description = "메뉴판에 새로운 음식을 추가합니다.",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
-    public ResponseEntity<ApiResponse<MenuItem>> addMenuItem(
+    public ResponseEntity<ApiResponse<MenuItemResponse>> addMenuItem(
             @PathVariable Long menuId,
-            @RequestBody MenuItem menuItemRequest,
+            @RequestBody MenuItemRequest menuItemRequest,
             @AuthenticationPrincipal UserDetailsImpl currentUser) {
-        MenuItem menuItem = menuService.addMenuItem(menuId, menuItemRequest, currentUser.getId());
+        MenuItemResponse menuItem = menuService.addMenuItem(menuId, menuItemRequest, currentUser.getId());
         return ResponseEntity.ok(ApiResponse.success("메뉴 아이템 추가가 완료되었습니다.", menuItem));
     }
 } 
