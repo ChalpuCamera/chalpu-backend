@@ -2,7 +2,8 @@ package com.example.chalpu.menu.controller;
 
 import com.example.chalpu.common.response.ApiResponse;
 import com.example.chalpu.common.response.PageResponse;
-import com.example.chalpu.menu.domain.Menu;
+import com.example.chalpu.menu.dto.MenuRequest;
+import com.example.chalpu.menu.dto.MenuResponse;
 import com.example.chalpu.menu.service.MenuService;
 import com.example.chalpu.oauth.security.jwt.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,26 +37,20 @@ public class MenuController {
 
                 
                 **요청 예시:**
-                ```json
-                {
-                  "page": 0,
-                  "size": 10,
-                  "sort": ["createdAt,desc", "menuName,asc"]
-                }
+                ```
+                GET /api/stores/{storeId}/menus?page=0&size=10&sort=createdAt,desc&sort=menuName,asc
+                ```
                 위처럼 정렬 조건을 리스트로 줘도 되고 아래처럼 String으로 줘도 됩니다.
-                {
-                  "page": 0,
-                  "size": 10,
-                  "sort": "createdAt,desc"
-                }
+                ```
+                GET /api/stores/{storeId}/menus?page=0&size=10&sort=createdAt,desc
                 ```
                 """,
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
-    public ResponseEntity<ApiResponse<PageResponse<Menu>>> getMenus(
+    public ResponseEntity<ApiResponse<PageResponse<MenuResponse>>> getMenus(
             @PathVariable Long storeId,
             @PageableDefault(size = 20) Pageable pageable) {
-        PageResponse<Menu> menus = menuService.getMenus(storeId, pageable);
+        PageResponse<MenuResponse> menus = menuService.getMenus(storeId, pageable);
         return ResponseEntity.ok(ApiResponse.success("메뉴판 목록 조회가 완료되었습니다.", menus));
     }
 
@@ -65,11 +60,11 @@ public class MenuController {
         description = "새로운 메뉴판을 생성합니다.",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
-    public ResponseEntity<ApiResponse<Menu>> createMenu(
+    public ResponseEntity<ApiResponse<MenuResponse>> createMenu(
             @PathVariable Long storeId,
-            @RequestBody Menu menuRequest,
+            @RequestBody MenuRequest menuRequest,
             @AuthenticationPrincipal UserDetailsImpl currentUser) {
-        Menu menu = menuService.createMenu(storeId, menuRequest, currentUser.getId());
+        MenuResponse menu = menuService.createMenu(storeId, menuRequest, currentUser.getId());
         return ResponseEntity.ok(ApiResponse.success("메뉴판 생성이 완료되었습니다.", menu));
     }
 } 

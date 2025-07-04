@@ -12,10 +12,4 @@ import java.util.List;
 
 @Repository
 public interface StoreRepository extends JpaRepository<Store, Long> {
-
-    @Query("SELECT s FROM Store s JOIN UserStoreRole usr ON s.id = usr.store.id WHERE usr.user.id = :userId")
-    List<Store> findStoresByUserId(@Param("userId") Long userId);
-    
-    @Query("SELECT s FROM Store s JOIN UserStoreRole usr ON s.id = usr.store.id WHERE usr.user.id = :userId")
-    Page<Store> findStoresByUserId(@Param("userId") Long userId, Pageable pageable);
 } 
