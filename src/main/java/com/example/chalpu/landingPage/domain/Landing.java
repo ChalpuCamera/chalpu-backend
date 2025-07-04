@@ -19,7 +19,6 @@ public class Landing {
     @Column(name = "inquiry_id")
     private Long id;
 
-    private String email;
-    private String phone;
+    private String info;
     private String message;
 }

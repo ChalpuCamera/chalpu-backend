@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LandingRequest {
-    private String email;
-    private String phone;
+    private String info;
     private String message;
 }
