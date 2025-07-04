@@ -26,8 +26,7 @@ public class LandingController {
     public ResponseEntity<ApiResponse<Void>> inquiry(@RequestBody LandingRequest request) {
         // Landing 엔티티 생성
         Landing landing = Landing.builder() 
-            .email(request.getEmail())
-            .phone(request.getPhone())
+            .info(request.getInfo())
             .message(request.getMessage())
             .build();
         
