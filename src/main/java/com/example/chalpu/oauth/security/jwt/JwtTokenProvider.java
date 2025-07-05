@@ -33,8 +33,8 @@ public class JwtTokenProvider {
     /**
      * Access Token과 Refresh Token을 함께 생성하여 TokenDTO로 반환
      */
-    public TokenDTO generateTokens(Long userId, String email) {
-        String accessToken = generateAccessToken(userId, email);
+    public TokenDTO generateTokens(Long userId, String email, String role) {
+        String accessToken = generateAccessToken(userId, email, role);
         String refreshToken = generateRefreshToken(userId);
 
         log.info("토큰 생성 완료: 사용자 ID = {}", userId);
@@ -43,13 +43,14 @@ public class JwtTokenProvider {
     }
 
     // Access Token 생성 (15분)
-    public String generateAccessToken(Long userId, String email) {
+    public String generateAccessToken(Long userId, String email, String role) {
         Instant now = Instant.now();
         Instant expiration = now.plus(accessTokenValidityInMinutes, ChronoUnit.MINUTES);
 
         return Jwts.builder()
                 .setSubject(userId.toString())
                 .claim("email", email)
+                .claim("role", role)
                 .claim("type", "access")
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(expiration))
@@ -74,13 +75,14 @@ public class JwtTokenProvider {
     /**
      * 테스트용 Access Token 생성 (10년)
      */
-    public String generateTestAccessToken(Long userId, String email) {
+    public String generateTestAccessToken(Long userId, String email, String role) {
         Instant now = Instant.now();
         Instant expiration = now.plus(3650, ChronoUnit.DAYS); // 10 years
 
         return Jwts.builder()
                 .setSubject(userId.toString())
                 .claim("email", email)
+                .claim("role", role)
                 .claim("type", "access")
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(expiration))
@@ -96,6 +98,11 @@ public class JwtTokenProvider {
     // 토큰에서 이메일 추출 (Access Token만)
     public String getEmailFromToken(String token) {
         return getClaimsFromToken(token).get("email", String.class);
+    }
+
+    // 토큰에서 role 추출 (Access Token만)
+    public String getRoleFromToken(String token) {
+        return getClaimsFromToken(token).get("role", String.class);
     }
 
     // 토큰 타입 확인

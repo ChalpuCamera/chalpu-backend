@@ -97,7 +97,7 @@ public class GoogleAuthController {
                 request.getFcmToken(), request.getDeviceType());
 
         // 4. Access Token과 Refresh Token 생성
-        TokenDTO tokenDTO = jwtTokenProvider.generateTokens(user.getId(), user.getEmail());
+        TokenDTO tokenDTO = jwtTokenProvider.generateTokens(user.getId(), user.getEmail(), user.getRole().name());
         
         // 5. Refresh Token DB에 저장
         refreshTokenService.saveRefreshToken(tokenDTO.getRefreshToken(), user.getId());
