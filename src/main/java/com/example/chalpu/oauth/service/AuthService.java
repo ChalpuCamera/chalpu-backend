@@ -30,7 +30,7 @@ public class AuthService {
         // 토큰 검증 로직을 AuthService로 이동
         User user = validateAndGetUser(refreshToken.getRefreshToken());
 
-        String newAccessToken = tokenProvider.generateAccessToken(user.getId(), user.getEmail());
+        String newAccessToken = tokenProvider.generateAccessToken(user.getId(), user.getEmail(), user.getRole().name());
 
         return new AccessTokenDTO(newAccessToken);
     }

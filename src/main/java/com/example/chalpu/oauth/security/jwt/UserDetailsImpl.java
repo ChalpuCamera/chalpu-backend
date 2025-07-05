@@ -25,8 +25,9 @@ public class UserDetailsImpl implements UserDetails, OAuth2User {
     private Map<String, Object> attributes;
 
     public static UserDetailsImpl build(User user) {
-        // 기본적으로 USER 권한 부여
-        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        // 사용자의 실제 role 사용
+        String role = user.getRole() != null ? user.getRole().name() : "ROLE_USER";
+        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
 
         return new UserDetailsImpl(
                 user.getId(),

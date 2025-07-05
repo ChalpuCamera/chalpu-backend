@@ -41,7 +41,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
             // AuthService를 통해 토큰 생성 (UserDetailsImpl 직접 전달)
-            TokenDTO tokenDTO = jwtTokenProvider.generateTokens(userDetails.getId(),userDetails.getEmail());
+            String role = userDetails.getAuthorities().iterator().next().getAuthority();
+            TokenDTO tokenDTO = jwtTokenProvider.generateTokens(userDetails.getId(), userDetails.getEmail(), role);
             
             // Refresh Token DB에 저장
             refreshTokenService.saveRefreshToken(tokenDTO.getRefreshToken(), userDetails.getId());
