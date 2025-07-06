@@ -27,18 +27,30 @@ public class AuthService {
 
     @Transactional
     public AccessTokenDTO refreshToken(RefreshTokenDTO refreshToken) {
-        // 토큰 검증 로직을 AuthService로 이동
-        User user = validateAndGetUser(refreshToken.getRefreshToken());
+        String oldRefreshToken = refreshToken.getRefreshToken();
+        try {
+            // 토큰 검증 로직을 AuthService로 이동
+            User user = validateAndGetUser(oldRefreshToken);
 
-        String newAccessToken = tokenProvider.generateAccessToken(user.getId(), user.getEmail(), user.getRole().name());
-
-        return new AccessTokenDTO(newAccessToken);
+            String newAccessToken = tokenProvider.generateAccessToken(user.getId(), user.getEmail(), user.getRole().name());
+            
+            log.info("event=access_token_refreshed, user_id={}", user.getId());
+            return new AccessTokenDTO(newAccessToken);
+        } catch (Exception e) {
+            log.error("event=access_token_refresh_failed, error_message={}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Transactional
     public void logout(Long userId) {
-        refreshTokenService.deleteRefreshTokenByUserId(userId);
-        log.info("사용자 {} 로그아웃 완료", userId);
+        try {
+            refreshTokenService.deleteRefreshTokenByUserId(userId);
+            log.info("event=user_logged_out, user_id={}", userId);
+        } catch (Exception e) {
+            log.error("event=user_logout_failed, user_id={}, error_message={}", userId, e.getMessage(), e);
+            throw e;
+        }
     }
 
 
