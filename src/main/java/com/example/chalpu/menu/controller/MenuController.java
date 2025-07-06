@@ -67,4 +67,29 @@ public class MenuController {
         MenuResponse menu = menuService.createMenu(storeId, menuRequest, currentUser.getId());
         return ResponseEntity.ok(ApiResponse.success("메뉴판 생성이 완료되었습니다.", menu));
     }
+
+    @PutMapping("/{menuId}")
+    @Operation(
+        summary = "메뉴판 수정",
+        description = "기존 메뉴판의 정보를 수정합니다.",
+        security = { @SecurityRequirement(name = "bearerAuth") }
+    )
+    public ResponseEntity<ApiResponse<MenuResponse>> updateMenu(
+            @PathVariable Long storeId,
+            @PathVariable Long menuId,
+            @RequestBody MenuRequest menuRequest,
+            @AuthenticationPrincipal UserDetailsImpl currentUser) {
+        MenuResponse menu = menuService.updateMenu(menuId, menuRequest, currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success("메뉴판 수정이 완료되었습니다.", menu));
+    }
+
+    @DeleteMapping("/{menuId}")
+    @Operation(summary = "메뉴판 삭제", description = "특정 메뉴판을 삭제합니다.")
+    public ResponseEntity<ApiResponse<Void>> deleteMenu(
+            @PathVariable Long storeId,
+            @PathVariable Long menuId,
+            @AuthenticationPrincipal UserDetailsImpl currentUser) {
+        menuService.deleteMenu(menuId, currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success("메뉴판 삭제가 완료되었습니다.", null));
+    }
 } 
