@@ -102,7 +102,18 @@ public class PhotoService {
             throw new PhotoException(ErrorMessage.PHOTO_NOT_FOUND);
         }
     }
-    
+
+    public PageResponse<PhotoResponse> getPhotosByFoodItem(final Long foodItemId, final Pageable pageable) {
+        log.info("[PhotoService] getPhotosByFoodItem for foodItemId: {}", foodItemId);
+        try {
+            Page<Photo> photoPage = photoRepository.findByFoodItemId(foodItemId, pageable);
+            return PageResponse.from(photoPage.map(photo -> PhotoResponse.from(photo, cloudfrontDomain)));
+        } catch (Exception e) {
+            log.error("[PhotoService] Failed to get photos for foodItemId: {}. Error: {}", foodItemId, e.getMessage());
+            throw new PhotoException(ErrorMessage.PHOTO_NOT_FOUND);
+        }
+    }
+
     public PhotoResponse getPhoto(final Long photoId) {
         log.info("[PhotoService] getPhoto for photoId: {}", photoId);
         try {

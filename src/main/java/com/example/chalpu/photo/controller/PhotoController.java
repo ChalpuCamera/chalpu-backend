@@ -63,6 +63,15 @@ public class PhotoController {
         return ApiResponse.success(photoService.getPhotosByStore(storeId, pageable));
     }
 
+    @Operation(summary = "음식별 사진 목록 조회", description = "특정 음식에 속한 사진 목록을 페이지네이션하여 조회합니다.")
+    @GetMapping("/store/{foodItemId}")
+    public ApiResponse<PageResponse<PhotoResponse>> getPhotosByFoodItem(
+            @PathVariable Long foodItemId,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ApiResponse.success(photoService.getPhotosByFoodItem(foodItemId, pageable));
+
+    }
+
     @Operation(summary = "사진 상세 조회", description = "특정 사진의 상세 정보를 조회합니다.")
     @GetMapping("/{photoId}")
     public ApiResponse<PhotoResponse> getPhoto(@PathVariable Long photoId) {
