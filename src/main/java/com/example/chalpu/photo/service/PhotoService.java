@@ -48,25 +48,27 @@ public class PhotoService {
     private String cloudfrontDomain;
 
     public PhotoPresignedUrlResponse generatePresignedUrl(final String username, final PhotoUploadRequest request) {
-        log.info("[PhotoService] generatePresignedUrl for user: {}, fileName: {}", username, request.getFileName());
         // ToDo: 사용자 권한 검증 로직 추가 (e.g., storeId를 받아서 해당 가게의 관리자인지 확인)
         try {
             String s3Key = createS3Key(request.getFileName());
             URL presignedUrl = createPresignedUrl(s3Key);
+
+            log.info("event=presigned_url_generated, username={}, file_name={}, s3_key={}",
+                    username, request.getFileName(), s3Key);
 
             return PhotoPresignedUrlResponse.builder()
                     .presignedUrl(presignedUrl.toString())
                     .s3Key(s3Key)
                     .build();
         } catch (Exception e) {
-            log.error("[PhotoService] Failed to generate presigned URL for user: {}. Error: {}", username, e.getMessage());
+            log.error("event=presigned_url_generation_failed, username={}, file_name={}, error_message={}",
+                    username, request.getFileName(), e.getMessage(), e);
             throw new PhotoException(ErrorMessage.PRESIGNED_URL_GENERATION_FAILED);
         }
     }
 
     @Transactional
     public PhotoResponse registerPhoto(final String username, final PhotoRegisterRequest request) {
-        log.info("[PhotoService] registerPhoto for user: {}, s3Key: {}", username, request.getS3Key());
         try {
             Store store = storeRepository.findById(request.getStoreId())
                     .orElseThrow(() -> new PhotoException(ErrorMessage.STORE_NOT_FOUND));
@@ -85,58 +87,63 @@ public class PhotoService {
 
             Photo savedPhoto = photoRepository.save(photo);
 
+            log.info("event=photo_registered, photo_id={}, s3_key={}, username={}",
+                    savedPhoto.getId(), savedPhoto.getS3Key(), username);
+
             return PhotoResponse.from(savedPhoto, cloudfrontDomain);
         } catch (Exception e) {
-            log.error("[PhotoService] Failed to register photo for user: {}. s3Key: {}. Error: {}", username, request.getS3Key(), e.getMessage());
+            log.error("event=photo_registration_failed, s3_key={}, username={}, error_message={}",
+                    request.getS3Key(), username, e.getMessage(), e);
             throw new PhotoException(ErrorMessage.PHOTO_REGISTRATION_FAILED);
         }
     }
 
     public PageResponse<PhotoResponse> getPhotosByStore(final Long storeId, final Pageable pageable) {
-        log.info("[PhotoService] getPhotosByStore for storeId: {}", storeId);
         try {
             Page<Photo> photoPage = photoRepository.findByStoreId(storeId, pageable);
             return PageResponse.from(photoPage.map(photo -> PhotoResponse.from(photo, cloudfrontDomain)));
         } catch (Exception e) {
-            log.error("[PhotoService] Failed to get photos for storeId: {}. Error: {}", storeId, e.getMessage());
+            log.error("event=photos_by_store_failed, store_id={}, error_message={}",
+                    storeId, e.getMessage(), e);
             throw new PhotoException(ErrorMessage.PHOTO_NOT_FOUND);
         }
     }
 
     public PageResponse<PhotoResponse> getPhotosByFoodItem(final Long foodItemId, final Pageable pageable) {
-        log.info("[PhotoService] getPhotosByFoodItem for foodItemId: {}", foodItemId);
         try {
             Page<Photo> photoPage = photoRepository.findByFoodItemId(foodItemId, pageable);
             return PageResponse.from(photoPage.map(photo -> PhotoResponse.from(photo, cloudfrontDomain)));
         } catch (Exception e) {
-            log.error("[PhotoService] Failed to get photos for foodItemId: {}. Error: {}", foodItemId, e.getMessage());
+            log.error("event=photos_by_food_item_failed, food_item_id={}, error_message={}",
+                    foodItemId, e.getMessage(), e);
             throw new PhotoException(ErrorMessage.PHOTO_NOT_FOUND);
         }
     }
 
     public PhotoResponse getPhoto(final Long photoId) {
-        log.info("[PhotoService] getPhoto for photoId: {}", photoId);
         try {
             Photo photo = findPhotoById(photoId);
             return PhotoResponse.from(photo, cloudfrontDomain);
         } catch (Exception e) {
-            log.error("[PhotoService] Failed to get photo for photoId: {}. Error: {}", photoId, e.getMessage());
+            log.error("event=photo_get_failed, photo_id={}, error_message={}",
+                    photoId, e.getMessage(), e);
             throw new PhotoException(ErrorMessage.PHOTO_NOT_FOUND);
         }
     }
 
     @Transactional
     public void deletePhoto(final String username, final Long photoId) {
-        log.info("[PhotoService] deletePhoto for user: {}, photoId: {}", username, photoId);
         try {
             Photo photo = findPhotoById(photoId);
             // ToDo: 권한 검증 로직 (username이 이 사진을 삭제할 권한이 있는지)
 
             deleteS3Object(photo.getS3Key());
             photo.setIsActive(false);
-            log.info("[PhotoService] Successfully deleted photoId: {}", photoId);
+
+            log.info("event=photo_deleted, photo_id={}, username={}", photoId, username);
         } catch (Exception e) {
-            log.error("[PhotoService] Failed to delete photo for user: {}, photoId: {}. Error: {}", username, photoId, e.getMessage());
+            log.error("event=photo_deletion_failed, photo_id={}, username={}, error_message={}",
+                    username, photoId, e.getMessage(), e);
             throw new PhotoException(ErrorMessage.PHOTO_DELETE_FAILED);
         }
     }
@@ -153,10 +160,10 @@ public class PhotoService {
                     .key(s3Key)
                     .build();
             s3Client.deleteObject(deleteObjectRequest);
-            log.info("[PhotoService] Successfully deleted S3 object with key: {}", s3Key);
+            log.info("event=s3_object_deleted, s3_key={}", s3Key);
         } catch (Exception e) {
-            // S3에서 객체 삭제 실패 시 로깅만 하고 에러를 던지지는 않음 (DB 트랜잭션은 롤백되지 않도록)
-            log.error("[PhotoService] Failed to delete S3 object with key: {}. Error: {}", s3Key, e.getMessage());
+            log.error("event=s3_object_deletion_failed, s3_key={}, error_message={}",
+                    s3Key, e.getMessage(), e);
         }
     }
 
