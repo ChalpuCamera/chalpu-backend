@@ -111,12 +111,20 @@ public class UserStoreRoleService {
      */
     @Transactional
     public void createOwnerRole(Long userId, Long storeId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new StoreException(ErrorMessage.USER_NOT_FOUND));
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
-        createOwnerRole(user, store);
-        log.info("user: {}, store: {} 매장 소유자 생성에 성공", user, store);
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new StoreException(ErrorMessage.USER_NOT_FOUND));
+            Store store = storeRepository.findById(storeId)
+                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
+            
+            createOwnerRole(user, store);
+            
+            log.info("event=owner_role_created, user_id={}, store_id={}", userId, storeId);
+        } catch (Exception e) {
+            log.error("event=owner_role_creation_failed, user_id={}, store_id={}, error_message={}",
+                    userId, storeId, e.getMessage(), e);
+            throw e;
+        }
     }
 
     /**
@@ -132,31 +140,37 @@ public class UserStoreRoleService {
      */
     @Transactional
     public MemberResponse inviteMember(Long storeId, MemberInviteRequest memberRequest, Long inviterUserId) {
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
-        User inviteUser = userRepository.findById(memberRequest.getUserId())
-                .orElseThrow(() -> new StoreException(ErrorMessage.USER_NOT_FOUND));
+        try {
+            Store store = storeRepository.findById(storeId)
+                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
+            User inviteUser = userRepository.findById(memberRequest.getUserId())
+                    .orElseThrow(() -> new StoreException(ErrorMessage.USER_NOT_FOUND));
 
-        // 권한 검증: 멤버 초대 권한이 있는지 확인
-        List<UserStoreRole> inviterRoles = userStoreRoleRepository.findByUserId(inviterUserId);
-        if (!canInviteMembers(inviterRoles, store)) {
-            log.error("canInviteMembers: {}, 멤버 초대 권한이 없습니다.", canInviteMembers(inviterRoles, store));
-            throw new StoreException(ErrorMessage.STORE_ACCESS_DENIED);
+            // 권한 검증: 멤버 초대 권한이 있는지 확인
+            List<UserStoreRole> inviterRoles = userStoreRoleRepository.findByUserId(inviterUserId);
+            if (!canInviteMembers(inviterRoles, store)) {
+                throw new StoreException(ErrorMessage.STORE_ACCESS_DENIED);
+            }
+
+            // 이미 매장 구성원인지 확인
+            userStoreRoleRepository.findByUserIdAndStoreId(memberRequest.getUserId(), storeId)
+                .ifPresent(existingRole -> {
+                    throw new StoreException(ErrorMessage.STORE_MEMBER_ALREADY_EXISTS);
+                });
+
+            // 직원 역할 생성
+            UserStoreRole newUserRole = UserStoreRole.createEmployee(inviteUser, store, memberRequest.getRoleType());
+            UserStoreRole savedUserStoreRole = userStoreRoleRepository.save(newUserRole);
+            
+            log.info("event=member_invited, store_id={}, invited_user_id={}, inviter_user_id={}",
+                    storeId, memberRequest.getUserId(), inviterUserId);
+            
+            return MemberResponse.from(savedUserStoreRole);
+        } catch (Exception e) {
+            log.error("event=member_invitation_failed, store_id={}, invited_user_id={}, inviter_user_id={}, error_message={}",
+                    storeId, memberRequest.getUserId(), inviterUserId, e.getMessage(), e);
+            throw e;
         }
-
-        // 이미 매장 구성원인지 확인
-        Optional<UserStoreRole> existingRole = userStoreRoleRepository.findByUserIdAndStoreId(
-                memberRequest.getUserId(), storeId);
-        if (existingRole.isPresent()) {
-            log.error("existingRole: {}, 이미 매장 구성원입니다.", existingRole);
-            throw new StoreException(ErrorMessage.STORE_MEMBER_ALREADY_EXISTS);
-        }
-
-        // 직원 역할 생성
-        UserStoreRole newUserRole = UserStoreRole.createEmployee(inviteUser, store, memberRequest.getRoleType());
-        UserStoreRole savedUserStoreRole = userStoreRoleRepository.save(newUserRole);
-        log.info("savedUserStoreRole {} 직원 역할 생성에 성공", savedUserStoreRole);
-        return MemberResponse.from(savedUserStoreRole);
     }
 
     /**
@@ -164,25 +178,32 @@ public class UserStoreRoleService {
      */
     @Transactional
     public MemberResponse changeRole(Long storeId, Long targetUserId, StoreRoleType newRoleType, Long requestUserId) {
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
+        try {
+            Store store = storeRepository.findById(storeId)
+                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
 
-        // 요청자와 대상자의 역할 조회
-        List<UserStoreRole> requestUserRoles = userStoreRoleRepository.findByUserId(requestUserId);
-        UserStoreRole requestUserRole = getUserRoleInStore(requestUserRoles, store)
-                .orElseThrow(() -> new StoreException(ErrorMessage.STORE_ACCESS_DENIED));
+            // 요청자와 대상자의 역할 조회
+            UserStoreRole requestUserRole = userStoreRoleRepository.findByUserIdAndStoreId(requestUserId, storeId)
+                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_ACCESS_DENIED));
 
-        UserStoreRole targetRole = userStoreRoleRepository.findByUserIdAndStoreId(targetUserId, storeId)
-                .orElseThrow(() -> new StoreException(ErrorMessage.STORE_MEMBER_NOT_FOUND));
+            UserStoreRole targetRole = userStoreRoleRepository.findByUserIdAndStoreId(targetUserId, storeId)
+                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_MEMBER_NOT_FOUND));
 
-        // 권한 검증
-        validateRoleChange(requestUserRole, targetRole, newRoleType);
+            // 권한 검증
+            validateRoleChange(requestUserRole, targetRole, newRoleType);
 
-        // 역할 변경
-        targetRole.changeRole(newRoleType);
-        UserStoreRole updatedRole = userStoreRoleRepository.save(targetRole);
-        log.info("updatedRole {} 역할 변경에 성공", updatedRole);
-        return MemberResponse.from(updatedRole);
+            // 역할 변경
+            targetRole.changeRole(newRoleType);
+            
+            log.info("event=member_role_changed, store_id={}, target_user_id={}, new_role={}, request_user_id={}",
+                    storeId, targetUserId, newRoleType, requestUserId);
+
+            return MemberResponse.from(targetRole);
+        } catch (Exception e) {
+            log.error("event=member_role_change_failed, store_id={}, target_user_id={}, request_user_id={}, error_message={}",
+                    storeId, targetUserId, requestUserId, e.getMessage(), e);
+            throw e;
+        }
     }
 
     /**
@@ -190,27 +211,33 @@ public class UserStoreRoleService {
      */
     @Transactional
     public void removeMember(Long storeId, Long targetUserId, Long requestUserId) {
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
+        try {
+            Store store = storeRepository.findById(storeId)
+                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
 
-        // 요청자의 권한 확인
-        List<UserStoreRole> requestUserRoles = userStoreRoleRepository.findByUserId(requestUserId);
-        if (!canInviteMembers(requestUserRoles, store)) {
-            throw new StoreException(ErrorMessage.STORE_ACCESS_DENIED);
+            // 요청자의 권한 확인
+            if (!canUserManageStore(requestUserId, storeId)) {
+                throw new StoreException(ErrorMessage.STORE_ACCESS_DENIED);
+            }
+
+            // 대상자 역할 조회
+            UserStoreRole targetRole = userStoreRoleRepository.findByUserIdAndStoreId(targetUserId, storeId)
+                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_MEMBER_NOT_FOUND));
+
+            // 본인은 제거할 수 없음
+            if (targetUserId.equals(requestUserId)) {
+                throw new StoreException(ErrorMessage.INVALID_REQUEST);
+            }
+
+            targetRole.deactivate();
+            
+            log.info("event=member_removed, store_id={}, target_user_id={}, request_user_id={}",
+                    storeId, targetUserId, requestUserId);
+        } catch (Exception e) {
+            log.error("event=member_removal_failed, store_id={}, target_user_id={}, request_user_id={}, error_message={}",
+                    storeId, targetUserId, requestUserId, e.getMessage(), e);
+            throw e;
         }
-
-        // 대상자 역할 조회 및 비활성화
-        UserStoreRole targetRole = userStoreRoleRepository.findByUserIdAndStoreId(targetUserId, storeId)
-                .orElseThrow(() -> new StoreException(ErrorMessage.STORE_MEMBER_NOT_FOUND));
-
-        // 본인은 제거할 수 없음
-        if (targetUserId.equals(requestUserId)) {
-            throw new StoreException(ErrorMessage.INVALID_REQUEST);
-        }
-
-        targetRole.deactivate();
-        userStoreRoleRepository.save(targetRole);
-        log.info("targetRole {} 멤버 제거에 성공", targetRole);
     }
 
     /**
@@ -218,17 +245,23 @@ public class UserStoreRoleService {
      */
     @Transactional
     public void leaveStore(Long storeId, Long userId) {
-        UserStoreRole userRole = userStoreRoleRepository.findByUserIdAndStoreId(userId, storeId)
-                .orElseThrow(() -> new StoreException(ErrorMessage.STORE_MEMBER_NOT_FOUND));
+        try {
+            UserStoreRole userRole = userStoreRoleRepository.findByUserIdAndStoreId(userId, storeId)
+                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_MEMBER_NOT_FOUND));
 
-        // 소유자는 탈퇴할 수 없음 (매장을 다른 사람에게 양도하거나 매장을 삭제해야 함)
-        if (userRole.isOwner()) {
-            throw new StoreException(ErrorMessage.STORE_OWNER_REQUIRED);
+            // 소유자는 탈퇴할 수 없음 (매장을 다른 사람에게 양도하거나 매장을 삭제해야 함)
+            if (userRole.isOwner()) {
+                throw new StoreException(ErrorMessage.STORE_OWNER_REQUIRED);
+            }
+
+            userRole.deactivate();
+            
+            log.info("event=member_left_store, store_id={}, user_id={}", storeId, userId);
+        } catch (Exception e) {
+            log.error("event=store_leaving_failed, store_id={}, user_id={}, error_message={}",
+                    storeId, userId, e.getMessage(), e);
+            throw e;
         }
-
-        userRole.deactivate();
-        userStoreRoleRepository.save(userRole);
-        log.info("userRole {} 매장 탈퇴에 성공", userRole);
     }
 
     /**

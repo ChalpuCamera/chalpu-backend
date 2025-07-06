@@ -7,11 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MenuRepository extends JpaRepository<Menu, Long> {
     
-    List<Menu> findByStoreId(Long storeId);
-    
-    Page<Menu> findByStoreId(Long storeId, Pageable pageable);
+    Page<Menu> findByStoreIdAndIsActiveTrue(Long storeId, Pageable pageable);
+
+    Optional<Menu> findByIdAndIsActiveTrue(Long menuId);
 } 

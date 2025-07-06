@@ -64,25 +64,23 @@ public class RefreshTokenService {
                     .orElseThrow(() -> new UserException(ErrorMessage.USER_NOT_FOUND));
 
             // 기존 리프레시 토큰이 있으면 업데이트, 없으면 새로 저장
-            Optional<RefreshToken> existingToken = refreshTokenRepository.findByUser(user);
-            if (existingToken.isPresent()) {
-                // 기존 토큰 업데이트
-                RefreshToken token = existingToken.get();
-                token.updateRefreshToken(refreshToken);
-                log.info("기존 Refresh Token 업데이트: userId={}", userId);
-            } else {
-                // 새 리프레시 토큰 저장
-                RefreshToken newRefreshToken = RefreshToken.builder()
-                        .refreshToken(refreshToken)
-                        .user(user)
-                        .build();
-
-                refreshTokenRepository.save(newRefreshToken);
-                log.info("새 Refresh Token 저장 완료: userId={}", userId);
-            }
-
+            refreshTokenRepository.findByUser(user)
+                    .ifPresentOrElse(
+                            token -> {
+                                token.updateRefreshToken(refreshToken);
+                                log.info("event=refresh_token_updated, user_id={}", userId);
+                            },
+                            () -> {
+                                RefreshToken newRefreshToken = RefreshToken.builder()
+                                        .refreshToken(refreshToken)
+                                        .user(user)
+                                        .build();
+                                refreshTokenRepository.save(newRefreshToken);
+                                log.info("event=refresh_token_created, user_id={}", userId);
+                            }
+                    );
         } catch (Exception e) {
-            log.error("Refresh Token 저장 실패: userId={}, error={}", userId, e.getMessage());
+            log.error("event=refresh_token_save_failed, user_id={}, error_message={}", userId, e.getMessage(), e);
             throw new RefreshTokenException(ErrorMessage.REFRESH_TOKEN_SAVE_ERROR);
         }
     }
@@ -91,9 +89,9 @@ public class RefreshTokenService {
     public void deleteRefreshTokenByUserId(Long userId) {
         try {
             refreshTokenRepository.deleteByUserId(userId);
-            log.info("사용자 ID {}의 Refresh Token 삭제 완료", userId);
+            log.info("event=refresh_token_deleted, user_id={}", userId);
         } catch (Exception e) {
-            log.error("사용자 ID {}의 Refresh Token 삭제 실패: {}", userId, e.getMessage());
+            log.error("event=refresh_token_delete_failed, user_id={}, error_message={}", userId, e.getMessage(), e);
             throw new RefreshTokenException(ErrorMessage.REFRESH_TOKEN_DELETE_ERROR);
         }
     }

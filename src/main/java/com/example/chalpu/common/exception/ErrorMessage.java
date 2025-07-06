@@ -55,6 +55,7 @@ public enum ErrorMessage {
     STORE_ACCESS_DENIED(FORBIDDEN, "매장 접근 권한이 없습니다."),
     STORE_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "매장 생성에 실패했습니다."),
     STORE_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "매장 정보 수정에 실패했습니다."),
+    STORE_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "매장 삭제에 실패했습니다."),
     STORE_OWNER_REQUIRED(FORBIDDEN, "매장 소유자 권한이 필요합니다."),
     STORE_MEMBER_NOT_FOUND(NOT_FOUND, "매장 구성원을 찾을 수 없습니다."),
     STORE_MEMBER_ALREADY_EXISTS(BAD_REQUEST, "이미 매장 구성원으로 등록되어 있습니다."),
@@ -64,8 +65,12 @@ public enum ErrorMessage {
     MENU_ACCESS_DENIED(FORBIDDEN, "메뉴 접근 권한이 없습니다."),
     MENU_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메뉴 생성에 실패했습니다."),
     MENU_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메뉴 수정에 실패했습니다."),
+    MENU_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메뉴 삭제에 실패했습니다."),
     MENU_ITEM_NOT_FOUND(NOT_FOUND, "메뉴 항목을 찾을 수 없습니다."),
     MENU_ITEM_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메뉴 항목 생성에 실패했습니다."),
+    MENU_ITEM_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메뉴 항목 수정에 실패했습니다."),
+    MENU_ITEM_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메뉴 항목 삭제에 실패했습니다."),
+    MENU_ITEM_NOT_IN_MENU(BAD_REQUEST, "해당 메뉴에 속한 아이템이 아닙니다."),
     
     // 음식 관련 에러
     FOOD_NOT_FOUND(NOT_FOUND, "음식을 찾을 수 없습니다."),
