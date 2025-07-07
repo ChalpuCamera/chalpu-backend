@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class MenuItemResponse {
     
     @Schema(description = "메뉴 아이템 ID", example = "1")
-    private Long id;
+    private Long menuItemId;
     
     @Schema(description = "메뉴판 ID", example = "1")
     private Long menuId;
@@ -31,7 +31,7 @@ public class MenuItemResponse {
     
     public static MenuItemResponse from(MenuItem menuItem) {
         return MenuItemResponse.builder()
-                .id(menuItem.getId())
+                .menuItemId(menuItem.getId())
                 .menuId(menuItem.getMenu() != null ? menuItem.getMenu().getId() : null)
                 .foodId(menuItem.getFoodItem() != null ? menuItem.getFoodItem().getId() : null)
                 .foodName(menuItem.getFoodItem() != null ? menuItem.getFoodItem().getFoodName() : null)

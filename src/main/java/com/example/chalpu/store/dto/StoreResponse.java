@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class StoreResponse {
     
     @Schema(description = "매장 ID", example = "1")
-    private Long id;
+    private Long storeId;
     
     @Schema(description = "매장명", example = "맛있는 식당")
     private String storeName;
@@ -42,7 +42,7 @@ public class StoreResponse {
     
     public static StoreResponse from(Store store) {
         return StoreResponse.builder()
-                .id(store.getId())
+                .storeId(store.getId())
                 .storeName(store.getStoreName())
                 .businessType(store.getBusinessType())
                 .address(store.getAddress())

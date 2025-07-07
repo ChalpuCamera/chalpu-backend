@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class PhotoResponse {
     
     @Schema(description = "사진 ID", example = "1")
-    private Long id;
+    private Long photoId;
     
     @Schema(description = "매장 ID", example = "1")
     private Long storeId;
@@ -48,7 +48,7 @@ public class PhotoResponse {
     
     public static PhotoResponse from(Photo photo, String cloudfrontDomain) {
         return PhotoResponse.builder()
-                .id(photo.getId())
+                .photoId(photo.getId())
                 .storeId(photo.getStore() != null ? photo.getStore().getId() : null)
                 .foodId(photo.getFoodItem() != null ? photo.getFoodItem().getId() : null)
                 .imageUrl(buildFullUrl(cloudfrontDomain, photo.getS3Key()))
