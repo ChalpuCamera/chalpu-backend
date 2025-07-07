@@ -37,7 +37,6 @@ public class Menu extends BaseTimeEntity {
                 .store(store)
                 .menuName(menuRequest.getMenuName())
                 .description(menuRequest.getDescription())
-                .isActive(menuRequest.getIsActive())
                 .build();
     }
 
@@ -48,7 +47,6 @@ public class Menu extends BaseTimeEntity {
     public void updateMenu(MenuRequest menuRequest) {
         this.menuName = menuRequest.getMenuName();
         this.description = menuRequest.getDescription();
-        this.isActive = menuRequest.getIsActive();
     }
 
     /**
