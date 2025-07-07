@@ -8,13 +8,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.HashSet;
-import java.util.Set;
 
+@Builder
 @Entity
 @Table(name = "guides")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Guide extends BaseTimeEntity {
@@ -41,7 +42,8 @@ public class Guide extends BaseTimeEntity {
     private SubCategory subCategory;
 
     @Column(nullable = false)
-    private Boolean isActive;
+    @Builder.Default
+    private Boolean isActive = true;
 
     @Builder
     public Guide(String content, String guideS3Key, String imageS3Key, String fileName,
@@ -51,7 +53,6 @@ public class Guide extends BaseTimeEntity {
         this.imageS3Key = imageS3Key;
         this.fileName = fileName;
         this.subCategory = subCategory;
-        this.isActive = true;
     }
 
     public void update(String content, String fileName, SubCategory subCategory) {
