@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class FoodItemResponse {
     
     @Schema(description = "음식 ID", example = "1")
-    private Long id;
+    private Long foodItemId;
     
     @Schema(description = "매장 ID", example = "1")
     private Long storeId;
@@ -49,7 +49,7 @@ public class FoodItemResponse {
     
     public static FoodItemResponse from(FoodItem foodItem) {
         return FoodItemResponse.builder()
-                .id(foodItem.getId())
+                .foodItemId(foodItem.getId())
                 .storeId(foodItem.getStore() != null ? foodItem.getStore().getId() : null)
                 .foodName(foodItem.getFoodName())
                 .description(foodItem.getDescription())

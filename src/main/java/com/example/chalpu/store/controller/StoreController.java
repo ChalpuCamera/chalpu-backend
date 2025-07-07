@@ -91,7 +91,7 @@ public class StoreController {
         StoreResponse store = storeService.createStore(storeRequest);
         
         // 2. 소유자 역할 생성
-        userStoreRoleService.createOwnerRole(userDetails.getId(), store.getId());
+        userStoreRoleService.createOwnerRole(userDetails.getId(), store.getStoreId());
         
         return ResponseEntity.ok(ApiResponse.success(store));
     }
