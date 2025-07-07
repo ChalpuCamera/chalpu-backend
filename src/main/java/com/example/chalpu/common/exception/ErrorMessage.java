@@ -134,7 +134,24 @@ public enum ErrorMessage {
     RESOURCE_NOT_FOUND(NOT_FOUND, "요청한 리소스를 찾을 수 없습니다."),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "허용되지 않은 HTTP 메서드입니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."),
-    UNEXPECTED_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "예상치 못한 오류가 발생했습니다.");
+    UNEXPECTED_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "예상치 못한 오류가 발생했습니다."),
+
+    // Guide
+    GUIDE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 가이드를 찾을 수 없습니다."),
+    SUB_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 하위 카테고리를 찾을 수 없습니다."),
+
+    // S3
+    S3_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3 파일 삭제에 실패했습니다."),
+
+    // GuideTag
+    TAG_ALREADY_EXISTS(HttpStatus.CONFLICT, "해당 가이드에 이미 존재하는 태그입니다."),
+    GUIDE_TAG_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 가이드-태그 관계를 찾을 수 없습니다."),
+
+    // FCM
+    FCM_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FCM 메시지 전송에 실패했습니다."),
+
+    // User Store Role
+    USER_STORE_ROLE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저의 가게 권한을 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

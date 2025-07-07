@@ -1,34 +1,38 @@
 package com.example.chalpu.guide.dto;
 
 import com.example.chalpu.guide.domain.Guide;
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.example.chalpu.tag.domain.GuideTag;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Builder
 public class GuideResponse {
 
-    @Schema(description = "가이드 ID")
-    private Long id;
+    private final Long guideId;
+    private final String content;
+    private final String guideS3Key;
+    private final String fileName;
+    private final String imageS3Key;
+    private final String categoryName;
+    private final String subCategoryName;
+    private final List<String> tags;
 
-    @Schema(description = "S3 키")
-    private String s3Key;
-
-    @Schema(description = "원본 파일명")
-    private String fileName;
-
-    @Schema(description = "생성일")
-    private LocalDateTime createdAt;
-
-    public static GuideResponse from(Guide guide) {
+    public static GuideResponse from(Guide guide, List<GuideTag> guideTags) {
         return GuideResponse.builder()
-                .id(guide.getId())
-                .s3Key(guide.getS3Key())
+                .guideId(guide.getId())
+                .content(guide.getContent())
+                .guideS3Key(guide.getGuideS3Key())
                 .fileName(guide.getFileName())
-                .createdAt(guide.getCreatedAt())
+                .imageS3Key(guide.getImageS3Key())
+                .categoryName(guide.getSubCategory().getCategory().getName())
+                .subCategoryName(guide.getSubCategory().getName())
+                .tags(guideTags.stream()
+                        .map(guideTag -> guideTag.getTag().getName())
+                        .collect(Collectors.toList()))
                 .build();
     }
 } 
