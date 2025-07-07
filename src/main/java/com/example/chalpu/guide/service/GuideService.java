@@ -38,9 +38,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional(readOnly = true)
 public class GuideService {
 
@@ -74,7 +76,7 @@ public class GuideService {
     public GuideResponse registerGuide(GuideRegisterRequest request) {
         SubCategory subCategory = subCategoryRepository.findById(request.getSubCategoryId())
                 .orElseThrow(() -> new NoticeException(ErrorMessage.SUB_CATEGORY_NOT_FOUND));
-
+        log.info("subCategory: {}", subCategory);
         Guide guide = Guide.builder()
                 .content(request.getContent())
                 .guideS3Key(request.getGuideS3Key())
@@ -83,13 +85,13 @@ public class GuideService {
                 .subCategory(subCategory)
                 .build();
         Guide savedGuide = guideRepository.save(guide);
-
+        log.info("savedGuide: {}", savedGuide);
         List<Tag> tags = findOrCreateTags(request.getTags());
         List<GuideTag> guideTags = tags.stream()
                 .map(tag -> GuideTag.builder().guide(savedGuide).tag(tag).build())
                 .collect(Collectors.toList());
         guideTagRepository.saveAll(guideTags);
-
+        log.info("guideTags: {}", guideTags);
         return GuideResponse.from(savedGuide, guideTags);
     }
 
