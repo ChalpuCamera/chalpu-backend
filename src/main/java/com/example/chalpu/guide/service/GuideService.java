@@ -1,133 +1,196 @@
 package com.example.chalpu.guide.service;
 
+import com.example.chalpu.common.exception.ErrorMessage;
+import com.example.chalpu.common.exception.NoticeException;
+import com.example.chalpu.common.exception.S3Exception;
 import com.example.chalpu.common.response.PageResponse;
 import com.example.chalpu.guide.domain.Guide;
-import com.example.chalpu.guide.dto.GuidePresignedUrlResponse;
+import com.example.chalpu.guide.domain.SubCategory;
+import com.example.chalpu.guide.dto.GuidePresignedUrlRequest;
+import com.example.chalpu.guide.dto.GuidePresignedUrlsResponse;
 import com.example.chalpu.guide.dto.GuideRegisterRequest;
 import com.example.chalpu.guide.dto.GuideResponse;
-import com.example.chalpu.guide.dto.GuideUploadRequest;
+import com.example.chalpu.guide.dto.GuideUpdateRequest;
 import com.example.chalpu.guide.repository.GuideRepository;
+import com.example.chalpu.guide.repository.SubCategoryRepository;
+import com.example.chalpu.tag.domain.GuideTag;
+import com.example.chalpu.tag.domain.Tag;
+import com.example.chalpu.tag.repository.GuideTagRepository;
+import com.example.chalpu.tag.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.Delete;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
-import java.net.URL;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class GuideService {
 
     private final GuideRepository guideRepository;
+    private final SubCategoryRepository subCategoryRepository;
+    private final TagRepository tagRepository;
+    private final GuideTagRepository guideTagRepository;
     private final S3Presigner s3Presigner;
     private final S3Client s3Client;
 
     @Value("${cloud.aws.s3.bucket}")
-    private String bucket;
+    private String bucketName;
 
-    private static final String GUIDE_S3_KEY_PREFIX = "guides/";
+    public GuidePresignedUrlsResponse getPresignedUrls(GuidePresignedUrlRequest request) {
+        String uniqueId = UUID.randomUUID().toString();
+        String guideS3Key = "guides/" + uniqueId + "-" + request.getFileName() + ".xml";
+        String imageS3Key = "guides/images/" + uniqueId + "-" + request.getFileName() + ".png";
 
-    public GuideResponse getGuide(Long guideId) {
-        log.info("[GuideService] 가이드 상세 조회 시작. guideId: {}", guideId);
-        Guide guide = guideRepository.findById(guideId)
-                .orElseThrow(() -> new RuntimeException("해당 가이드를 찾을 수 없습니다.")); // TODO: GuideException으로 교체
-        log.info("[GuideService] 가이드 상세 조회 완료. guideId: {}", guideId);
-        return GuideResponse.from(guide);
-    }
+        String guideUploadUrl = createPresignedUrl(guideS3Key);
+        String imageUploadUrl = createPresignedUrl(imageS3Key);
 
-    public PageResponse<GuideResponse> getAllGuides(Pageable pageable) {
-        log.info("[GuideService] 가이드 전체 조회 시작. page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
-        Page<Guide> guides = guideRepository.findAll(pageable);
-        Page<GuideResponse> guideResponses = guides.map(GuideResponse::from);
-        log.info("[GuideService] 가이드 전체 조회 완료. totalElements: {}", guides.getTotalElements());
-        return PageResponse.from(guideResponses);
-    }
-
-    public GuidePresignedUrlResponse generatePresignedUrl(GuideUploadRequest request) {
-        log.info("[GuideService] Presigned URL 생성 시작. fileName: {}", request.getFileName());
-        String s3Key = createS3Key();
-
-        try {
-            URL url = createPresignedUrl(s3Key);
-            log.info("[GuideService] Presigned URL 생성 완료. s3Key: {}", s3Key);
-            return new GuidePresignedUrlResponse(url.toString(), s3Key);
-        } catch (Exception e) {
-            log.error("[GuideService] Presigned URL 생성 실패.", e);
-            // TODO: GuideException 추가 및 전용 에러 메시지 사용
-            throw new RuntimeException("Presigned URL 생성에 실패했습니다.", e);
-        }
+        return GuidePresignedUrlsResponse.builder()
+                .guideS3Key(guideS3Key)
+                .guideUploadUrl(guideUploadUrl)
+                .imageS3Key(imageS3Key)
+                .imageUploadUrl(imageUploadUrl)
+                .build();
     }
 
     @Transactional
     public GuideResponse registerGuide(GuideRegisterRequest request) {
-        log.info("[GuideService] 가이드 등록 시작. s3Key: {}", request.getS3Key());
-        // TODO: S3에 파일이 실제로 존재하는지 확인하는 로직 추가
+        SubCategory subCategory = subCategoryRepository.findById(request.getSubCategoryId())
+                .orElseThrow(() -> new NoticeException(ErrorMessage.SUB_CATEGORY_NOT_FOUND));
 
         Guide guide = Guide.builder()
-                .s3Key(request.getS3Key())
+                .content(request.getContent())
+                .guideS3Key(request.getGuideS3Key())
+                .imageS3Key(request.getImageS3Key())
                 .fileName(request.getFileName())
+                .subCategory(subCategory)
                 .build();
-
         Guide savedGuide = guideRepository.save(guide);
-        log.info("[GuideService] 가이드 등록 완료. guideId: {}", savedGuide.getId());
-        return GuideResponse.from(savedGuide);
+
+        List<Tag> tags = findOrCreateTags(request.getTags());
+        List<GuideTag> guideTags = tags.stream()
+                .map(tag -> GuideTag.builder().guide(savedGuide).tag(tag).build())
+                .collect(Collectors.toList());
+        guideTagRepository.saveAll(guideTags);
+
+        return GuideResponse.from(savedGuide, guideTags);
     }
 
     @Transactional
-    public void deleteGuide(Long guideId) {
-        log.info("[GuideService] 가이드 삭제 시작. guideId: {}", guideId);
-        
+    public GuideResponse updateGuide(Long guideId, GuideUpdateRequest request) {
         Guide guide = guideRepository.findById(guideId)
-                .orElseThrow(() -> new RuntimeException("해당 가이드를 찾을 수 없습니다.")); // TODO: GuideException으로 교체
+                .orElseThrow(() -> new NoticeException(ErrorMessage.GUIDE_NOT_FOUND));
 
-        deleteS3Object(guide.getS3Key());
-        
-        guideRepository.delete(guide);
-        log.info("[GuideService] 가이드 삭제 완료. guideId: {}", guideId);
-    }
-    
-    private void deleteS3Object(String s3Key) {
-        try {
-            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(s3Key)
-                    .build();
-            s3Client.deleteObject(deleteObjectRequest);
-            log.info("[GuideService] S3 파일 삭제 완료. s3Key: {}", s3Key);
-        } catch (Exception e) {
-            log.error("[GuideService] S3 파일 삭제 실패. s3Key: {}", s3Key, e);
-            throw new RuntimeException("S3 파일 삭제에 실패했습니다."); // TODO: 전용 예외 처리
+        SubCategory subCategory = null;
+        if (request.getSubCategoryId() != null) {
+            subCategory = subCategoryRepository.findById(request.getSubCategoryId())
+                    .orElseThrow(() -> new NoticeException(ErrorMessage.SUB_CATEGORY_NOT_FOUND));
         }
+
+        guide.update(request.getContent(), request.getFileName(), subCategory);
+
+        List<GuideTag> guideTags = guideTagRepository.findByGuide(guide);
+        return GuideResponse.from(guide, guideTags);
     }
 
-    private String createS3Key() {
-        return GUIDE_S3_KEY_PREFIX + UUID.randomUUID() + ".xml";
+    public GuideResponse findById(Long guideId) {
+        Guide guide = guideRepository.findByIdAndIsActiveTrue(guideId)
+            .orElseThrow(() -> new NoticeException(ErrorMessage.GUIDE_NOT_FOUND));
+        List<GuideTag> guideTags = guideTagRepository.findByGuide(guide);
+        return GuideResponse.from(guide, guideTags);
     }
 
-    private URL createPresignedUrl(final String s3Key) {
-        PutObjectRequest objectRequest = PutObjectRequest.builder()
-                .bucket(bucket)
+    public PageResponse<GuideResponse> findAll(Pageable pageable) {
+        Page<Guide> guidesPage = guideRepository.findAllByIsActiveTrue(pageable);
+        List<GuideResponse> guideResponses = guidesPage.getContent().stream()
+                .map(guide -> GuideResponse.from(guide, guideTagRepository.findByGuide(guide)))
+                .collect(Collectors.toList());
+        return PageResponse.from(new PageImpl<>(guideResponses, pageable, guidesPage.getTotalElements()));
+    }
+
+    public PageResponse<GuideResponse> findAllBySubCategory(Long subCategoryId, Pageable pageable) {
+        Page<Guide> guidesPage = guideRepository.findBySubCategoryIdAndIsActiveTrue(subCategoryId, pageable);
+        List<GuideResponse> guideResponses = guidesPage.getContent().stream()
+                .map(guide -> GuideResponse.from(guide, guideTagRepository.findByGuide(guide)))
+                .collect(Collectors.toList());
+        return PageResponse.from(new PageImpl<>(guideResponses, pageable, guidesPage.getTotalElements()));
+    }
+
+    @Transactional
+    public void deleteGuides(List<Long> guideIds) {
+        List<Guide> guides = guideRepository.findAllById(guideIds);
+        if (guides.size() != guideIds.size()) {
+            throw new NoticeException(ErrorMessage.GUIDE_NOT_FOUND);
+        }
+
+        List<String> s3KeysToDelete = guides.stream()
+                .flatMap(guide -> java.util.stream.Stream.of(guide.getGuideS3Key(), guide.getImageS3Key()))
+                .collect(Collectors.toList());
+        deleteS3Objects(s3KeysToDelete);
+
+        guides.forEach(Guide::softDelete);
+        guideRepository.saveAll(guides);
+    }
+
+    private String createPresignedUrl(String s3Key) {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
                 .key(s3Key)
-                .contentType("application/xml")
                 .build();
 
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
                 .signatureDuration(Duration.ofMinutes(10))
-                .putObjectRequest(objectRequest)
+                .putObjectRequest(putObjectRequest)
                 .build();
 
-        return s3Presigner.presignPutObject(presignRequest).url();
+        return s3Presigner.presignPutObject(presignRequest).url().toString();
+    }
+
+    private void deleteS3Objects(List<String> s3Keys) {
+        if (s3Keys == null || s3Keys.isEmpty()) {
+            return;
+        }
+        try {
+            List<ObjectIdentifier> toDelete = s3Keys.stream()
+                    .map(key -> ObjectIdentifier.builder().key(key).build())
+                    .collect(Collectors.toList());
+
+            DeleteObjectsRequest deleteObjectsRequest = DeleteObjectsRequest.builder()
+                    .bucket(bucketName)
+                    .delete(Delete.builder().objects(toDelete).build())
+                    .build();
+
+            s3Client.deleteObjects(deleteObjectsRequest);
+        } catch (Exception e) {
+            throw new S3Exception(ErrorMessage.S3_DELETE_FAILED);
+        }
+    }
+
+    private List<Tag> findOrCreateTags(List<String> tagNames) {
+        if (tagNames == null || tagNames.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return tagNames.stream().map(tagName ->
+                tagRepository.findByName(tagName)
+                        .orElseGet(() -> tagRepository.save(Tag.builder().name(tagName).build()))
+        ).collect(Collectors.toList());
     }
 } 

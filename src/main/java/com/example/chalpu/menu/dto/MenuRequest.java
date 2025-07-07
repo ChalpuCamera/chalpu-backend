@@ -18,8 +18,4 @@ public class MenuRequest {
     
     @Schema(description = "메뉴판 설명", example = "점심시간 특별 메뉴")
     private String description;
-    
-    @Schema(description = "활성화 여부", example = "true")
-    @Builder.Default
-    private Boolean isActive = true;
 } 
