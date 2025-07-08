@@ -149,7 +149,7 @@ public class GuideService {
         }
 
         List<String> s3KeysToDelete = guides.stream()
-                .flatMap(guide -> java.util.stream.Stream.of(guide.getGuideS3Key(), guide.getImageS3Key()))
+                .flatMap(guide -> java.util.stream.Stream.of(guide.getGuideS3Key(), guide.getImageS3Key(), guide.getSvgS3Key()))
                 .collect(Collectors.toList());
         deleteS3Objects(s3KeysToDelete);
 
