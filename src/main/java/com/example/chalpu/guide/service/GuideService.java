@@ -60,15 +60,21 @@ public class GuideService {
         String uniqueId = UUID.randomUUID().toString();
         String guideS3Key = "guides/" + uniqueId + "-" + request.getFileName() + ".xml";
         String imageS3Key = "guides/images/" + uniqueId + "-" + request.getFileName() + ".png";
+        String svgS3Key = "guides/svgs/" + uniqueId + "-" + request.getFileName() + ".svg";
 
         String guideUploadUrl = createPresignedUrl(guideS3Key);
         String imageUploadUrl = createPresignedUrl(imageS3Key);
+        String svgUploadUrl = createPresignedUrl(svgS3Key);
+
+        log.info("event=presigned_urls_generated, guide_s3_key={}, image_s3_key={}", guideS3Key, imageS3Key);
 
         return GuidePresignedUrlsResponse.builder()
                 .guideS3Key(guideS3Key)
                 .guideUploadUrl(guideUploadUrl)
                 .imageS3Key(imageS3Key)
                 .imageUploadUrl(imageUploadUrl)
+                .svgS3Key(svgS3Key)
+                .svgUploadUrl(svgUploadUrl)
                 .build();
     }
 
@@ -76,22 +82,21 @@ public class GuideService {
     public GuideResponse registerGuide(GuideRegisterRequest request) {
         SubCategory subCategory = subCategoryRepository.findById(request.getSubCategoryId())
                 .orElseThrow(() -> new NoticeException(ErrorMessage.SUB_CATEGORY_NOT_FOUND));
-        log.info("subCategory: {}", subCategory);
         Guide guide = Guide.builder()
                 .content(request.getContent())
                 .guideS3Key(request.getGuideS3Key())
                 .imageS3Key(request.getImageS3Key())
+                .svgS3Key(request.getSvgS3Key())
                 .fileName(request.getFileName())
                 .subCategory(subCategory)
                 .build();
         Guide savedGuide = guideRepository.save(guide);
-        log.info("savedGuide: {}", savedGuide);
         List<Tag> tags = findOrCreateTags(request.getTags());
         List<GuideTag> guideTags = tags.stream()
                 .map(tag -> GuideTag.builder().guide(savedGuide).tag(tag).build())
                 .collect(Collectors.toList());
         guideTagRepository.saveAll(guideTags);
-        log.info("guideTags: {}", guideTags);
+        log.info("event=guide_registered, guide_id={}, sub_category_id={}", savedGuide.getId(), request.getSubCategoryId());
         return GuideResponse.from(savedGuide, guideTags);
     }
 
@@ -109,6 +114,7 @@ public class GuideService {
         guide.update(request.getContent(), request.getFileName(), subCategory);
 
         List<GuideTag> guideTags = guideTagRepository.findByGuide(guide);
+        log.info("event=guide_updated, guide_id={}", guideId);
         return GuideResponse.from(guide, guideTags);
     }
 
@@ -149,6 +155,7 @@ public class GuideService {
 
         guides.forEach(Guide::softDelete);
         guideRepository.saveAll(guides);
+        log.info("event=guides_deleted, guide_ids={}", guideIds);
     }
 
     private String createPresignedUrl(String s3Key) {
@@ -181,6 +188,7 @@ public class GuideService {
 
             s3Client.deleteObjects(deleteObjectsRequest);
         } catch (Exception e) {
+            log.error("event=s3_delete_failed, bucket={}, keys={}, error_message={}", bucketName, s3Keys, e.getMessage(), e);
             throw new S3Exception(ErrorMessage.S3_DELETE_FAILED);
         }
     }
