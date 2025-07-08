@@ -31,6 +31,9 @@ public class Guide extends BaseTimeEntity {
     @Column(length = 500, nullable = false, unique = true)
     private String imageS3Key;
 
+    @Column(length = 500, nullable = false, unique = true)
+    private String svgS3Key;
+
     @Column(length = 100, nullable = false)
     private String fileName;
 

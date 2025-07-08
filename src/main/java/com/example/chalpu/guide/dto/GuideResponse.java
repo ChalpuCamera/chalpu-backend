@@ -17,6 +17,7 @@ public class GuideResponse {
     private final String guideS3Key;
     private final String fileName;
     private final String imageS3Key;
+    private final String svgS3Key;
     private final String categoryName;
     private final String subCategoryName;
     private final List<String> tags;
@@ -28,6 +29,7 @@ public class GuideResponse {
                 .guideS3Key(guide.getGuideS3Key())
                 .fileName(guide.getFileName())
                 .imageS3Key(guide.getImageS3Key())
+                .svgS3Key(guide.getSvgS3Key())
                 .categoryName(guide.getSubCategory().getCategory().getName())
                 .subCategoryName(guide.getSubCategory().getName())
                 .tags(guideTags.stream()
