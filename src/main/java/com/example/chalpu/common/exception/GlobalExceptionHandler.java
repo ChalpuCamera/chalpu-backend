@@ -36,7 +36,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<ApiResponse<Void>> handleAuthException(AuthException ex) {
         ErrorMessage errorMessage = ex.getErrorMessage();
-        logger.error("AuthException: {}", errorMessage.getMessage());
+        logger.error("event=auth_exception_handled, error_code={}, error_message={}", 
+                errorMessage.getHttpStatus().value(), errorMessage.getMessage());
         return ResponseEntity.status(errorMessage.getHttpStatus())
                 .body(ApiResponse.error(errorMessage.getHttpStatus().value(), errorMessage.getMessage()));
     }

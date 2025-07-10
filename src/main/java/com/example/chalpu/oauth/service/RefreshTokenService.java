@@ -34,13 +34,9 @@ public class RefreshTokenService {
             log.error("존재하지 않는 Refresh Token: {}", tokenValue);
             return false;
         }
-        
-        // 2. JWT 토큰의 유효기간 검증
-        if (!jwtTokenProvider.validateToken(tokenValue)) {
-            log.error("만료되거나 유효하지 않은 Refresh Token: {}", tokenValue);
-            return false;
-        }
-        
+
+        jwtTokenProvider.validateToken(tokenValue);
+
         // 3. Refresh Token 타입인지 확인
         if (!jwtTokenProvider.isRefreshToken(tokenValue)) {
             log.error("Refresh Token이 아닌 토큰: {}", tokenValue);
