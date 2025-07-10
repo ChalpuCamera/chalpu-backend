@@ -109,7 +109,7 @@ class PhotoServiceTest {
         
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getPhotoId()).isEqualTo(1L);
         assertThat(result.getStoreId()).isEqualTo(1L);
         assertThat(result.getFileName()).isEqualTo("test-image.jpg");
         assertThat(result.getFileSize()).isEqualTo(1024);
@@ -163,7 +163,7 @@ class PhotoServiceTest {
         assertThat(result.isHasPrevious()).isFalse();
         
         PhotoResponse photoResponse = result.getContent().get(0);
-        assertThat(photoResponse.getId()).isEqualTo(1L);
+        assertThat(photoResponse.getPhotoId()).isEqualTo(1L);
         assertThat(photoResponse.getStoreId()).isEqualTo(1L);
         assertThat(photoResponse.getFileName()).isEqualTo("test-image.jpg");
         
@@ -204,7 +204,7 @@ class PhotoServiceTest {
         
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getPhotoId()).isEqualTo(1L);
         assertThat(result.getStoreId()).isEqualTo(1L);
         assertThat(result.getFileName()).isEqualTo("test-image.jpg");
         assertThat(result.getFileSize()).isEqualTo(1024);
@@ -289,7 +289,7 @@ class PhotoServiceTest {
         
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getPhotoId()).isEqualTo(1L);
         assertThat(result.getStoreId()).isEqualTo(1L);
         
         verify(storeRepository).findById(1L);

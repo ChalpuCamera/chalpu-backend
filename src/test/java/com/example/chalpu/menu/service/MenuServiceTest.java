@@ -63,7 +63,7 @@ class MenuServiceTest {
         @DisplayName("성공")
         void createMenu_success() {
             // given
-            MenuRequest request = new MenuRequest("새 메뉴", "설명", true);
+            MenuRequest request = new MenuRequest("새 메뉴", "설명");
             given(userStoreRoleService.canUserManageStore(userId, storeId)).willReturn(true);
             given(menuRepository.save(any(Menu.class))).willReturn(menu);
 
@@ -80,7 +80,7 @@ class MenuServiceTest {
         @DisplayName("실패 - 권한 없음")
         void createMenu_fail_unauthorized() {
             // given
-            MenuRequest request = new MenuRequest("새 메뉴", "설명", true);
+            MenuRequest request = new MenuRequest("새 메뉴", "설명");
             given(userStoreRoleService.canUserManageStore(userId, storeId)).willReturn(false);
 
             // when & then
@@ -97,7 +97,7 @@ class MenuServiceTest {
         @DisplayName("성공")
         void updateMenu_success() {
             // given
-            MenuRequest request = new MenuRequest("수정된 메뉴", "수정된 설명", false);
+            MenuRequest request = new MenuRequest("수정된 메뉴", "수정된 설명");
             given(menuRepository.findByIdAndIsActiveTrue(menuId)).willReturn(Optional.of(menu));
             given(userStoreRoleService.canUserManageStore(userId, storeId)).willReturn(true);
 

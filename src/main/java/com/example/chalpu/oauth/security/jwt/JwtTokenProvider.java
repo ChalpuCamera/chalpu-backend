@@ -1,5 +1,7 @@
 package com.example.chalpu.oauth.security.jwt;
 
+import com.example.chalpu.common.exception.AuthException;
+import com.example.chalpu.common.exception.ErrorMessage;
 import com.example.chalpu.oauth.dto.TokenDTO;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -111,13 +113,24 @@ public class JwtTokenProvider {
     }
 
     // 토큰 유효성 검증
-    public boolean validateToken(String token) {
+    public void validateToken(String token) {
         try {
             getClaimsFromToken(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            log.error("Invalid JWT token: {}", e.getMessage());
-            return false;
+        } catch (ExpiredJwtException e) {
+            log.error("event=jwt_token_expired, token={}", token.substring(0, Math.min(token.length(), 20)) + "...");
+            throw new AuthException(ErrorMessage.JWT_EXPIRED);
+        } catch (MalformedJwtException e) {
+            log.error("event=jwt_token_malformed, error_message={}", e.getMessage());
+            throw new AuthException(ErrorMessage.JWT_MALFORMED);
+        } catch (UnsupportedJwtException e) {
+            log.error("event=jwt_token_unsupported, error_message={}", e.getMessage());
+            throw new AuthException(ErrorMessage.JWT_UNSUPPORTED);
+        } catch (IllegalArgumentException e) {
+            log.error("event=jwt_token_claims_empty, error_message={}", e.getMessage());
+            throw new AuthException(ErrorMessage.JWT_CLAIMS_EMPTY);
+        } catch (JwtException e) {
+            log.error("event=jwt_token_invalid_signature, error_message={}", e.getMessage());
+            throw new AuthException(ErrorMessage.JWT_INVALID_SIGNATURE);
         }
     }
 

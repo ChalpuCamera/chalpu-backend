@@ -194,6 +194,7 @@ public class UserStoreRoleService {
 
             // 역할 변경
             targetRole.changeRole(newRoleType);
+            userStoreRoleRepository.save(targetRole);
             
             log.info("event=member_role_changed, store_id={}, target_user_id={}, new_role={}, request_user_id={}",
                     storeId, targetUserId, newRoleType, requestUserId);
@@ -230,6 +231,7 @@ public class UserStoreRoleService {
             }
 
             targetRole.deactivate();
+            userStoreRoleRepository.save(targetRole);
             
             log.info("event=member_removed, store_id={}, target_user_id={}, request_user_id={}",
                     storeId, targetUserId, requestUserId);
@@ -249,16 +251,17 @@ public class UserStoreRoleService {
             UserStoreRole userRole = userStoreRoleRepository.findByUserIdAndStoreId(userId, storeId)
                     .orElseThrow(() -> new StoreException(ErrorMessage.STORE_MEMBER_NOT_FOUND));
 
-            // 소유자는 탈퇴할 수 없음 (매장을 다른 사람에게 양도하거나 매장을 삭제해야 함)
+            // 소유자는 탈퇴할 수 없음
             if (userRole.isOwner()) {
-                throw new StoreException(ErrorMessage.STORE_OWNER_REQUIRED);
+                throw new StoreException(ErrorMessage.STORE_OWNER_CANNOT_LEAVE);
             }
 
             userRole.deactivate();
+            userStoreRoleRepository.save(userRole);
             
             log.info("event=member_left_store, store_id={}, user_id={}", storeId, userId);
         } catch (Exception e) {
-            log.error("event=store_leaving_failed, store_id={}, user_id={}, error_message={}",
+            log.error("event=store_leave_failed, store_id={}, user_id={}, error_message={}",
                     storeId, userId, e.getMessage(), e);
             throw e;
         }

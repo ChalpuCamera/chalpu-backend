@@ -275,6 +275,7 @@ class UserStoreRoleServiceTest {
     @DisplayName("멤버 역할 변경 - 성공")
     void changeRole_Success() {
         // given
+        UserStoreRole requestUserRole = testUserStoreRole; // user 1, OWNER
         UserStoreRole targetRole = UserStoreRole.builder()
                 .id(2L)
                 .user(User.builder().id(2L).build())
@@ -283,9 +284,9 @@ class UserStoreRoleServiceTest {
                 .isActive(true)
                 .build();
 
-        when(storeRepository.findById(anyLong())).thenReturn(Optional.of(testStore));
-        when(userStoreRoleRepository.findByUserId(anyLong())).thenReturn(List.of(testUserStoreRole));
-        when(userStoreRoleRepository.findByUserIdAndStoreId(anyLong(), anyLong())).thenReturn(Optional.of(targetRole));
+        when(storeRepository.findById(1L)).thenReturn(Optional.of(testStore));
+        when(userStoreRoleRepository.findByUserIdAndStoreId(1L, 1L)).thenReturn(Optional.of(requestUserRole));
+        when(userStoreRoleRepository.findByUserIdAndStoreId(2L, 1L)).thenReturn(Optional.of(targetRole));
         when(userStoreRoleRepository.save(any(UserStoreRole.class))).thenReturn(targetRole);
 
         // when
@@ -293,6 +294,7 @@ class UserStoreRoleServiceTest {
 
         // then
         assertThat(result).isNotNull();
+        assertThat(result.getRoleType()).isEqualTo(StoreRoleType.MANAGER);
         
         verify(userStoreRoleRepository).save(any(UserStoreRole.class));
     }
@@ -309,16 +311,17 @@ class UserStoreRoleServiceTest {
                 .isActive(true)
                 .build();
 
-        when(storeRepository.findById(anyLong())).thenReturn(Optional.of(testStore));
-        when(userStoreRoleRepository.findByUserId(anyLong())).thenReturn(List.of(testUserStoreRole));
-        when(userStoreRoleRepository.findByUserIdAndStoreId(anyLong(), anyLong())).thenReturn(Optional.of(targetRole));
+        when(storeRepository.findById(1L)).thenReturn(Optional.of(testStore));
+        when(userStoreRoleRepository.findByUserId(1L)).thenReturn(List.of(testUserStoreRole));
+        when(userStoreRoleRepository.findByUserIdAndStoreId(2L, 1L)).thenReturn(Optional.of(targetRole));
         when(userStoreRoleRepository.save(any(UserStoreRole.class))).thenReturn(targetRole);
 
         // when
         userStoreRoleService.removeMember(1L, 2L, 1L);
 
         // then
-        verify(userStoreRoleRepository).save(any(UserStoreRole.class));
+        verify(userStoreRoleRepository).save(targetRole);
+        assertThat(targetRole.getIsActive()).isFalse();
     }
 
     @Test
@@ -333,14 +336,15 @@ class UserStoreRoleServiceTest {
                 .isActive(true)
                 .build();
 
-        when(userStoreRoleRepository.findByUserIdAndStoreId(anyLong(), anyLong())).thenReturn(Optional.of(userRole));
+        when(userStoreRoleRepository.findByUserIdAndStoreId(1L, 1L)).thenReturn(Optional.of(userRole));
         when(userStoreRoleRepository.save(any(UserStoreRole.class))).thenReturn(userRole);
 
         // when
         userStoreRoleService.leaveStore(1L, 1L);
 
         // then
-        verify(userStoreRoleRepository).save(any(UserStoreRole.class));
+        verify(userStoreRoleRepository).save(userRole);
+        assertThat(userRole.getIsActive()).isFalse();
     }
 
     @Test

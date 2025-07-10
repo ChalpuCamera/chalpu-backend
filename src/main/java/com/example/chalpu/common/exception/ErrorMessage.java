@@ -45,6 +45,7 @@ public enum ErrorMessage {
     JWT_MALFORMED(UNAUTHORIZED, "잘못된 형식의 JWT입니다."),
     JWT_UNSUPPORTED(UNAUTHORIZED, "지원하지 않는 JWT입니다."),
     JWT_CLAIMS_EMPTY(UNAUTHORIZED, "JWT claims가 비어있습니다."),
+    JWT_EXPIRED(UNAUTHORIZED, "JWT 토큰이 만료되었습니다."),
 
     // 리프레쉬 토큰 에러
     REFRESH_TOKEN_SAVE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "리프레시 토큰 저장에 실패했습니다."),
@@ -59,6 +60,7 @@ public enum ErrorMessage {
     STORE_OWNER_REQUIRED(FORBIDDEN, "매장 소유자 권한이 필요합니다."),
     STORE_MEMBER_NOT_FOUND(NOT_FOUND, "매장 구성원을 찾을 수 없습니다."),
     STORE_MEMBER_ALREADY_EXISTS(BAD_REQUEST, "이미 매장 구성원으로 등록되어 있습니다."),
+    STORE_OWNER_CANNOT_LEAVE(FORBIDDEN, "소유자는 탈퇴할 수 없습니다. 매장을 다른 사람에게 양도하거나 삭제해야 합니다."),
     
     // 메뉴 관련 에러
     MENU_NOT_FOUND(NOT_FOUND, "메뉴를 찾을 수 없습니다."),
