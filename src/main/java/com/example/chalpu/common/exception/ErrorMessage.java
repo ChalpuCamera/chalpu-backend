@@ -79,6 +79,8 @@ public enum ErrorMessage {
     FOOD_ACCESS_DENIED(FORBIDDEN, "음식 접근 권한이 없습니다."),
     FOOD_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "음식 등록에 실패했습니다."),
     FOOD_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "음식 정보 수정에 실패했습니다."),
+    FOODITEM_NOT_FOUND(NOT_FOUND, "음식 아이템을 찾을 수 없습니다."),
+    PHOTO_SET_FEATURED_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "대표 사진 설정에 실패했습니다."),
     
     // 사진 관련 에러
     PRESIGNED_URL_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "사진 업로드를 위한 URL 생성에 실패했습니다."),

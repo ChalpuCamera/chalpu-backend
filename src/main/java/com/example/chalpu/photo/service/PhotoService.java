@@ -4,14 +4,15 @@ import com.example.chalpu.common.exception.ErrorMessage;
 import com.example.chalpu.common.exception.PhotoException;
 import com.example.chalpu.common.response.PageResponse;
 import com.example.chalpu.photo.domain.Photo;
-import com.example.chalpu.photo.dto.PhotoPresignedUrlResponse;
-import com.example.chalpu.photo.dto.PhotoRegisterRequest;
-import com.example.chalpu.photo.dto.PhotoResponse;
-import com.example.chalpu.photo.dto.PhotoUploadRequest;
+import com.example.chalpu.photo.dto.*;
 import com.example.chalpu.photo.repository.PhotoRepository;
 import com.example.chalpu.store.domain.Store;
 import com.example.chalpu.store.repository.StoreRepository;
 import com.example.chalpu.user.domain.User;
+import com.example.chalpu.user.repository.UserRepository;
+import com.example.chalpu.store.service.UserStoreRoleService;
+import com.example.chalpu.fooditem.domain.FoodItem;
+import com.example.chalpu.fooditem.repository.FoodItemRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +41,8 @@ public class PhotoService {
     private final StoreRepository storeRepository;
     private final S3Presigner s3Presigner;
     private final S3Client s3Client;
+    private final UserStoreRoleService userStoreRoleService;
+    private final FoodItemRepository foodItemRepository;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -47,53 +50,52 @@ public class PhotoService {
     @Value("${cloud.aws.cloudfront.domain}")
     private String cloudfrontDomain;
 
-    public PhotoPresignedUrlResponse generatePresignedUrl(final String username, final PhotoUploadRequest request) {
-        // ToDo: 사용자 권한 검증 로직 추가 (e.g., storeId를 받아서 해당 가게의 관리자인지 확인)
+    public PhotoPresignedUrlResponse generatePresignedUrl(final Long userId, final PhotoUploadRequest request) {
         try {
             String s3Key = createS3Key(request.getFileName());
             URL presignedUrl = createPresignedUrl(s3Key);
-
-            log.info("event=presigned_url_generated, username={}, file_name={}, s3_key={}",
-                    username, request.getFileName(), s3Key);
-
+            log.info("event=presigned_url_generated, user_id={}, file_name={}, s3_key={}",
+                    userId, request.getFileName(), s3Key);
             return PhotoPresignedUrlResponse.builder()
                     .presignedUrl(presignedUrl.toString())
                     .s3Key(s3Key)
                     .build();
         } catch (Exception e) {
-            log.error("event=presigned_url_generation_failed, username={}, file_name={}, error_message={}",
-                    username, request.getFileName(), e.getMessage(), e);
+            log.error("event=presigned_url_generation_failed, user_id={}, file_name={}, error_message={}",
+                    userId, request.getFileName(), e.getMessage(), e);
             throw new PhotoException(ErrorMessage.PRESIGNED_URL_GENERATION_FAILED);
         }
     }
 
     @Transactional
-    public PhotoResponse registerPhoto(final String username, final PhotoRegisterRequest request) {
+    public PhotoResponse registerPhoto(final Long userId, final PhotoRegisterRequest request) {
         try {
             Store store = storeRepository.findById(request.getStoreId())
                     .orElseThrow(() -> new PhotoException(ErrorMessage.STORE_NOT_FOUND));
-            // ToDo: Add FoodItem logic if foodItemId is not null
 
+            FoodItem foodItem = null;
+            if (request.getFoodItemId() != null) {
+                foodItem = foodItemRepository.findById(request.getFoodItemId())
+                        .orElseThrow(() -> new PhotoException(ErrorMessage.FOODITEM_NOT_FOUND));
+            }
             Photo photo = Photo.builder()
                     .s3Key(request.getS3Key())
                     .fileName(request.getFileName())
                     .store(store)
+                    .foodItem(foodItem)
                     .fileSize(request.getFileSize())
                     .imageWidth(request.getImageWidth())
                     .imageHeight(request.getImageHeight())
                     .isActive(true)
                     .isFeatured(false)
                     .build();
-
             Photo savedPhoto = photoRepository.save(photo);
-
-            log.info("event=photo_registered, photo_id={}, s3_key={}, username={}",
-                    savedPhoto.getId(), savedPhoto.getS3Key(), username);
-
+            log.info("event=photo_registered, photo_id={}, s3_key={}, user_id={}",
+                    savedPhoto.getId(), savedPhoto.getS3Key(), userId);
             return PhotoResponse.from(savedPhoto, cloudfrontDomain);
         } catch (Exception e) {
-            log.error("event=photo_registration_failed, s3_key={}, username={}, error_message={}",
-                    request.getS3Key(), username, e.getMessage(), e);
+            log.error("event=photo_registration_failed, s3_key={}, user_id={}, error_message={}",
+                    request.getS3Key(), userId, e.getMessage(), e);
             throw new PhotoException(ErrorMessage.PHOTO_REGISTRATION_FAILED);
         }
     }
@@ -132,19 +134,38 @@ public class PhotoService {
     }
 
     @Transactional
-    public void deletePhoto(final String username, final Long photoId) {
+    public void deletePhoto(final Long userId, final Long photoId) {
         try {
             Photo photo = findPhotoByIdWithoutJoin(photoId);
-            // ToDo: 권한 검증 로직 (username이 이 사진을 삭제할 권한이 있는지)
-
+            if (!userStoreRoleService.canUserManageStore(userId, photo.getStore().getId())) {
+                throw new PhotoException(ErrorMessage.STORE_ACCESS_DENIED);
+            }
             deleteS3Object(photo.getS3Key());
             photo.setIsActive(false);
-
-            log.info("event=photo_deleted, photo_id={}, username={}", photoId, username);
+            log.info("event=photo_deleted, photo_id={}, user_id={}", photoId, userId);
         } catch (Exception e) {
-            log.error("event=photo_deletion_failed, photo_id={}, username={}, error_message={}",
-                    username, photoId, e.getMessage(), e);
+            log.error("event=photo_deletion_failed, photo_id={}, user_id={}, error_message={}",
+                    photoId, userId, e.getMessage(), e);
             throw new PhotoException(ErrorMessage.PHOTO_DELETE_FAILED);
+        }
+    }
+
+    @Transactional
+    public void setFeaturedPhoto(final Long userId, final PhotoSetFeaturedRequest request) {
+        try {
+            Photo photo = findPhotoByIdWithoutJoin(request.getPhotoId());
+            if (!userStoreRoleService.canUserManageStore(userId, photo.getStore().getId())) {
+                throw new PhotoException(ErrorMessage.STORE_ACCESS_DENIED);
+            }
+            FoodItem foodItem = foodItemRepository.findById(request.getFoodItemId())
+                    .orElseThrow(() -> new PhotoException(ErrorMessage.FOODITEM_NOT_FOUND));
+            foodItem.setThumbnailUrl(photo.getS3Key());
+            foodItemRepository.save(foodItem);
+            log.info("event=featured_photo_set, photo_id={}, user_id={}", request.getPhotoId(), userId);
+        } catch (Exception e) {
+            log.error("event=featured_photo_set_failed, photo_id={}, user_id={}, error_message={}",
+                    request.getPhotoId(), userId, e.getMessage(), e);
+            throw new PhotoException(ErrorMessage.PHOTO_SET_FEATURED_FAILED);
         }
     }
 

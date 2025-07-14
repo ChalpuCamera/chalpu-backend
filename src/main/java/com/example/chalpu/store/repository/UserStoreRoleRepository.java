@@ -39,4 +39,11 @@ public interface UserStoreRoleRepository extends JpaRepository<UserStoreRole, Lo
 
     @Query("SELECT usr FROM UserStoreRole usr WHERE usr.user.id = :userId AND usr.store.id = :storeId")
     Optional<UserStoreRole> findByUserIdAndStoreIdWithoutJoin(@Param("userId") Long userId, @Param("storeId") Long storeId);
+
+    // Store만 fetch join하는 메서드 (User 정보 불필요할 때)
+    @Query("SELECT usr FROM UserStoreRole usr JOIN FETCH usr.store WHERE usr.user.id = :userId")
+    Page<UserStoreRole> findByUserIdWithStoreOnly(@Param("userId") Long userId, Pageable pageable);
+    
+    @Query("SELECT usr FROM UserStoreRole usr JOIN FETCH usr.store WHERE usr.user.id = :userId")
+    List<UserStoreRole> findByUserIdWithStoreOnly(@Param("userId") Long userId);
 } 
