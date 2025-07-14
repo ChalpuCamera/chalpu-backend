@@ -4,6 +4,12 @@ variable "db_password" {
   sensitive   = true
 }
 
+variable "kms_key_arn" {
+  description = "KMS Key ARN for RDS encryption"
+  type        = string
+  sensitive   = true
+}
+
 resource "aws_db_subnet_group" "rds_subnet_group" {
   name        = "rds-ec2-db-subnet-group-1"
   description = "Created from the RDS Management Console"
@@ -31,7 +37,7 @@ resource "aws_db_instance" "chalpudata" {
   multi_az               = false
   publicly_accessible    = true
   storage_encrypted      = true
-  kms_key_id             = "arn:aws:kms:ap-northeast-2:279729537494:key/ef85d672-25c4-461f-8724-dab2286208a4"
+  kms_key_id             = var.kms_key_arn
   backup_retention_period = 1
   deletion_protection    = false
   skip_final_snapshot    = true
