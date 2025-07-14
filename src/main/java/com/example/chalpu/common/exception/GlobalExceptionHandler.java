@@ -119,6 +119,16 @@ public class GlobalExceptionHandler {
     }
     
     /**
+     * OAuth2AuthenticationProcessingException 처리
+     */
+    @ExceptionHandler(OAuth2AuthenticationProcessingException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOAuth2AuthenticationProcessingException(OAuth2AuthenticationProcessingException ex) {
+        logger.error("OAuth2AuthenticationProcessingException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(HttpStatus.UNAUTHORIZED.value(), ex.getMessage()));
+    }
+
+    /**
      * 메소드 인자 타입 불일치 및 파라미터 누락 예외 처리
      */
     @ExceptionHandler({MethodArgumentTypeMismatchException.class, MissingServletRequestParameterException.class, HttpMessageNotReadableException.class})

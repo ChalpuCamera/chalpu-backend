@@ -100,7 +100,7 @@ public class PhotoService {
 
     public PageResponse<PhotoResponse> getPhotosByStore(final Long storeId, final Pageable pageable) {
         try {
-            Page<Photo> photoPage = photoRepository.findByStoreId(storeId, pageable);
+            Page<Photo> photoPage = photoRepository.findByStoreIdWithJoin(storeId, pageable);
             return PageResponse.from(photoPage.map(photo -> PhotoResponse.from(photo, cloudfrontDomain)));
         } catch (Exception e) {
             log.error("event=photos_by_store_failed, store_id={}, error_message={}",
@@ -111,7 +111,7 @@ public class PhotoService {
 
     public PageResponse<PhotoResponse> getPhotosByFoodItem(final Long foodItemId, final Pageable pageable) {
         try {
-            Page<Photo> photoPage = photoRepository.findByFoodItemId(foodItemId, pageable);
+            Page<Photo> photoPage = photoRepository.findByFoodItemIdWithoutJoin(foodItemId, pageable);
             return PageResponse.from(photoPage.map(photo -> PhotoResponse.from(photo, cloudfrontDomain)));
         } catch (Exception e) {
             log.error("event=photos_by_food_item_failed, food_item_id={}, error_message={}",
@@ -122,7 +122,7 @@ public class PhotoService {
 
     public PhotoResponse getPhoto(final Long photoId) {
         try {
-            Photo photo = findPhotoById(photoId);
+            Photo photo = findPhotoByIdWithoutJoin(photoId);
             return PhotoResponse.from(photo, cloudfrontDomain);
         } catch (Exception e) {
             log.error("event=photo_get_failed, photo_id={}, error_message={}",
@@ -134,7 +134,7 @@ public class PhotoService {
     @Transactional
     public void deletePhoto(final String username, final Long photoId) {
         try {
-            Photo photo = findPhotoById(photoId);
+            Photo photo = findPhotoByIdWithoutJoin(photoId);
             // ToDo: 권한 검증 로직 (username이 이 사진을 삭제할 권한이 있는지)
 
             deleteS3Object(photo.getS3Key());
@@ -148,8 +148,8 @@ public class PhotoService {
         }
     }
 
-    private Photo findPhotoById(final Long photoId) {
-        return photoRepository.findById(photoId)
+    private Photo findPhotoByIdWithoutJoin(final Long photoId) {
+        return photoRepository.findByIdAndIsActiveTrueWithoutJoin(photoId)
                 .orElseThrow(() -> new PhotoException(ErrorMessage.PHOTO_NOT_FOUND));
     }
 

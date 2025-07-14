@@ -34,7 +34,7 @@ public class FoodItemService {
      */
     public PageResponse<FoodItemResponse> getFoodItems(Long storeId, Pageable pageable) {
         try {
-            Page<FoodItem> foodItemPage = foodItemRepository.findByStoreIdAndIsActiveTrue(storeId, pageable);
+            Page<FoodItem> foodItemPage = foodItemRepository.findByStoreIdAndIsActiveTrueWithoutJoin(storeId, pageable);
             Page<FoodItemResponse> foodResponsePage = foodItemPage.map(FoodItemResponse::from);
             return PageResponse.from(foodResponsePage);
         } catch (Exception e) {
@@ -83,43 +83,47 @@ public class FoodItemService {
      * 음식 아이템 수정
      */
     @Transactional
-    public FoodItemResponse updateFoodItem(Long foodId, FoodItemRequest foodItemRequest, Long userId) {
-        try {
-            FoodItem foodItem = findFoodItemById(foodId);
-            validateUserStoreAccess(userId, foodItem.getStore().getId());
-            
-            foodItem.updateFoodItem(foodItemRequest);
-            
-            log.info("event=food_item_updated, food_item_id={}, user_id={}", 
-                    foodId, userId);
-            
-            return FoodItemResponse.from(foodItem);
-        } catch (Exception e) {
-            log.error("event=food_item_update_failed, food_item_id={}, user_id={}, error_message={}", 
-                    foodId, userId, e.getMessage(), e);
-            throw new FoodException(ErrorMessage.FOOD_UPDATE_FAILED);
+    public FoodItemResponse updateFoodItem(Long foodItemId, FoodItemRequest request, Long userId) {
+        // 권한 검증 - storeId만 조회하여 성능 최적화
+        Long storeId = foodItemRepository.findStoreIdByFoodItemId(foodItemId)
+                .orElseThrow(() -> new FoodException(ErrorMessage.FOOD_NOT_FOUND));
+        
+        if (!userStoreRoleService.canUserAccessStore(userId, storeId)) {
+            throw new FoodException(ErrorMessage.STORE_ACCESS_DENIED);
         }
+
+        // 실제 업데이트용 - Store 정보 없이 경량화된 조회
+        FoodItem foodItem = foodItemRepository.findByIdAndIsActiveTrueWithoutJoin(foodItemId)
+                .orElseThrow(() -> new FoodException(ErrorMessage.FOOD_NOT_FOUND));
+
+        foodItem.updateFoodItem(request);
+        FoodItem savedFoodItem = foodItemRepository.save(foodItem);
+
+        log.info("event=food_item_updated, food_item_id={}, store_id={}", foodItemId, storeId);
+        return FoodItemResponse.from(savedFoodItem);
     }
 
     /**
      * 음식 아이템 삭제 (소프트 딜리트)
      */
     @Transactional
-    public void deleteFoodItem(Long foodId, Long userId) {
-        try {
-            FoodItem foodItem = findFoodItemById(foodId);
-            validateUserStoreAccess(userId, foodItem.getStore().getId());
-            
-            // 소프트 딜리트 처리
-            foodItem.softDelete();
-            
-            log.info("event=food_item_deleted, food_item_id={}, user_id={}", 
-                    foodId, userId);
-        } catch (Exception e) {
-            log.error("event=food_item_deletion_failed, food_item_id={}, user_id={}, error_message={}", 
-                    foodId, userId, e.getMessage(), e);
-            throw new FoodException(ErrorMessage.FOOD_UPDATE_FAILED);
+    public void deleteFoodItem(Long foodItemId, Long userId) {
+        // 권한 검증 - storeId만 조회하여 성능 최적화  
+        Long storeId = foodItemRepository.findStoreIdByFoodItemId(foodItemId)
+                .orElseThrow(() -> new FoodException(ErrorMessage.FOOD_NOT_FOUND));
+        
+        if (!userStoreRoleService.canUserAccessStore(userId, storeId)) {
+            throw new FoodException(ErrorMessage.STORE_ACCESS_DENIED);
         }
+
+        // 실제 삭제용 - 경량화된 조회
+        FoodItem foodItem = foodItemRepository.findByIdAndIsActiveTrueWithoutJoin(foodItemId)
+                .orElseThrow(() -> new FoodException(ErrorMessage.FOOD_NOT_FOUND));
+
+        foodItem.softDelete();
+        foodItemRepository.save(foodItem);
+
+        log.info("event=food_item_deleted, food_item_id={}, store_id={}", foodItemId, storeId);
     }
 
     /**
@@ -127,7 +131,7 @@ public class FoodItemService {
      */
     public PageResponse<FoodItemResponse> searchFoodItems(Long storeId, String keyword, Pageable pageable) {
         try {
-            Page<FoodItem> foodItemPage = foodItemRepository.findByStoreIdAndIsActiveTrueAndFoodNameContaining(
+            Page<FoodItem> foodItemPage = foodItemRepository.findByStoreIdAndIsActiveTrueAndFoodNameContainingWithoutJoin(
                     storeId, keyword, pageable);
             Page<FoodItemResponse> foodResponsePage = foodItemPage.map(FoodItemResponse::from);
             return PageResponse.from(foodResponsePage);
@@ -142,7 +146,15 @@ public class FoodItemService {
      * 음식 아이템 ID로 조회 (활성 음식만)
      */
     private FoodItem findFoodItemById(Long foodId) {
-        return foodItemRepository.findByIdAndIsActiveTrue(foodId)
+        return foodItemRepository.findByIdAndIsActiveTrueWithoutJoin(foodId)
+                .orElseThrow(() -> new FoodException(ErrorMessage.FOOD_NOT_FOUND));
+    }
+
+    /**
+     * 음식 아이템 ID로 조회 (연관 엔티티 없이, 권한 검증용)
+     */
+    private FoodItem findFoodItemByIdForValidation(Long foodId) {
+        return foodItemRepository.findByIdAndIsActiveTrueWithoutJoin(foodId)
                 .orElseThrow(() -> new FoodException(ErrorMessage.FOOD_NOT_FOUND));
     }
 
@@ -159,15 +171,6 @@ public class FoodItemService {
      */
     private void validateUserStoreAccess(Long userId, Long storeId) {
         if (!userStoreRoleService.canUserAccessStore(userId, storeId)) {
-            throw new FoodException(ErrorMessage.STORE_ACCESS_DENIED);
-        }
-    }
-
-    /**
-     * 사용자 매장 관리 권한 검증
-     */
-    private void validateUserStoreManagement(Long userId, Long storeId) {
-        if (!userStoreRoleService.canUserManageStore(userId, storeId)) {
             throw new FoodException(ErrorMessage.STORE_ACCESS_DENIED);
         }
     }

@@ -1,5 +1,8 @@
 package com.example.chalpu.oauth.security.jwt;
 
+import com.example.chalpu.common.exception.ErrorMessage;
+import com.example.chalpu.common.response.ApiResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +27,7 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -64,8 +68,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception ex) {
-            log.error("JWT 인증 처리 중 오류 발생: {}", ex.getMessage());
-            SecurityContextHolder.clearContext();
+            log.error("event=jwt_auth_failed, error_message={}", ex.getMessage(), ex);
+            sendErrorResponse(response, ErrorMessage.AUTH_INVALID_TOKEN);
+            return;
         }
 
         filterChain.doFilter(request, response);
@@ -77,5 +82,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return bearerToken.substring(7);
         }
         return null;
+    }
+
+    private void sendErrorResponse(HttpServletResponse response, ErrorMessage errorMessage) throws IOException {
+        response.setStatus(errorMessage.getHttpStatus().value());
+        response.setContentType("application/json;charset=UTF-8");
+
+        ApiResponse<?> apiResponse = ApiResponse.error(errorMessage.getHttpStatus().value(), errorMessage.getMessage());
+        String jsonResponse = objectMapper.writeValueAsString(apiResponse);
+
+        response.getWriter().write(jsonResponse);
     }
 }

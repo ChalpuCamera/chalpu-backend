@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
 
+@NamedEntityGraph(name = "FoodItem.withStore", attributeNodes = @NamedAttributeNode("store"))
 @Entity
 @Table(name = "food_items")
 @Data
@@ -20,7 +21,7 @@ public class FoodItem extends BaseTimeEntity {
     @Column(name = "food_id")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")
     private Store store;
 

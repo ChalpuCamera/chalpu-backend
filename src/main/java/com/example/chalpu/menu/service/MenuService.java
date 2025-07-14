@@ -2,6 +2,7 @@ package com.example.chalpu.menu.service;
 
 import com.example.chalpu.common.exception.ErrorMessage;
 import com.example.chalpu.common.exception.MenuException;
+import com.example.chalpu.common.exception.StoreException;
 import com.example.chalpu.common.response.PageResponse;
 import com.example.chalpu.menu.domain.Menu;
 import com.example.chalpu.menu.dto.MenuRequest;
@@ -16,6 +17,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -33,7 +36,7 @@ public class MenuService {
      */
     public PageResponse<MenuResponse> getMenus(Long storeId, Pageable pageable) {
         try {
-            Page<Menu> menuPage = menuRepository.findByStoreIdAndIsActiveTrue(storeId, pageable);
+            Page<Menu> menuPage = menuRepository.findByStoreIdAndIsActiveTrueWithoutJoin(storeId, pageable);
             Page<MenuResponse> menuResponsePage = menuPage.map(MenuResponse::from);
             return PageResponse.from(menuResponsePage);
         } catch (Exception e) {
@@ -47,22 +50,13 @@ public class MenuService {
      */
     @Transactional
     public MenuResponse createMenu(Long storeId, MenuRequest menuRequest, Long userId) {
-        try {
-            validateUserStoreManagement(userId, storeId);
-            Store store = findStoreById(storeId);
+        validateUserStoreAccess(userId, storeId);
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
+        Menu menu = menuRepository.save(Menu.createMenu(store, menuRequest));
+        log.info("event=menu_created, menu_id={}, store_id={}, user_id={}", menu.getId(), storeId, userId);
             
-            Menu menu = Menu.createMenu(store, menuRequest);
-            Menu savedMenu = menuRepository.save(menu);
-            
-            log.info("event=menu_created, menu_id={}, store_id={}, user_id={}",
-                    savedMenu.getId(), storeId, userId);
-            
-            return MenuResponse.from(savedMenu);
-        } catch (Exception e) {
-            log.error("event=menu_creation_failed, store_id={}, user_id={}, error_message={}", 
-                    storeId, userId, e.getMessage(), e);
-            throw new MenuException(ErrorMessage.MENU_CREATE_FAILED);
-        }
+        return MenuResponse.from(menu);
     }
 
     /**
@@ -70,21 +64,12 @@ public class MenuService {
      */
     @Transactional
     public MenuResponse updateMenu(Long menuId, MenuRequest menuRequest, Long userId) {
-        try {
-            Menu menu = findMenuById(menuId);
-            validateUserStoreManagement(userId, menu.getStore().getId());
-            
+        Menu menu = findMenuByIdForValidation(menuId);
+        validateUserStoreAccess(userId, menu.getStore().getId());
             menu.updateMenu(menuRequest);
-            
-            log.info("event=menu_updated, menu_id={}, user_id={}", 
-                    menu.getId(), userId);
+        log.info("event=menu_updated, menu_id={}, user_id={}", menuId, userId);
             
             return MenuResponse.from(menu);
-        } catch (Exception e) {
-            log.error("event=menu_update_failed, menu_id={}, user_id={}, error_message={}",
-                    menuId, userId, e.getMessage(), e);
-            throw new MenuException(ErrorMessage.MENU_UPDATE_FAILED);
-        }
     }
 
     /**
@@ -93,7 +78,7 @@ public class MenuService {
     @Transactional
     public void deleteMenu(Long menuId, Long userId) {
         try {
-            Menu menu = findMenuById(menuId);
+            Menu menu = findMenuByIdForValidation(menuId);
             validateUserStoreManagement(userId, menu.getStore().getId());
             
             // 메뉴 비활성화
@@ -110,17 +95,19 @@ public class MenuService {
         }
     }
 
-    private Menu findMenuById(Long menuId) {
-        return menuRepository.findByIdAndIsActiveTrue(menuId)
+
+    private Menu findMenuByIdForValidation(Long menuId) {
+        return menuRepository.findByIdAndIsActiveTrueWithoutJoin(menuId)
                 .orElseThrow(() -> new MenuException(ErrorMessage.MENU_NOT_FOUND));
     }
 
-    private Store findStoreById(Long storeId) {
-        return storeRepository.findById(storeId)
-                .orElseThrow(() -> new MenuException(ErrorMessage.STORE_NOT_FOUND));
+    private void validateUserStoreManagement(Long userId, Long storeId) {
+        if (!userStoreRoleService.canUserManageStore(userId, storeId)) {
+            throw new MenuException(ErrorMessage.STORE_ACCESS_DENIED);
+        }
     }
 
-    private void validateUserStoreManagement(Long userId, Long storeId) {
+    private void validateUserStoreAccess(Long userId, Long storeId) {
         if (!userStoreRoleService.canUserManageStore(userId, storeId)) {
             throw new MenuException(ErrorMessage.STORE_ACCESS_DENIED);
         }

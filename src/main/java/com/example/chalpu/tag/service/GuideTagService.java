@@ -29,13 +29,17 @@ public class GuideTagService {
 
     @Transactional
     public TagResponse addTagToGuide(Long guideId, String tagName) {
-        Guide guide = guideRepository.findById(guideId)
-                .orElseThrow(() -> new NoticeException(ErrorMessage.GUIDE_NOT_FOUND));
+        // Guide 존재 여부만 확인 (엔티티 조회 없이)
+        if (!guideRepository.existsById(guideId)) {
+            throw new NoticeException(ErrorMessage.GUIDE_NOT_FOUND);
+        }
 
+        // Tag 조회 또는 생성
         Tag tag = tagRepository.findByNameAndIsActiveTrue(tagName)
                 .orElseGet(() -> tagRepository.save(Tag.builder().name(tagName).build()));
 
-        Optional<GuideTag> existingGuideTag = guideTagRepository.findByGuideAndTag(guide, tag);
+        // 기존 GuideTag 존재 여부 확인 (경량화된 쿼리 사용)
+        Optional<GuideTag> existingGuideTag = guideTagRepository.findByGuideIdAndTagIdWithoutJoin(guideId, tag.getId());
 
         if (existingGuideTag.isPresent()) {
             GuideTag guideTag = existingGuideTag.get();
@@ -45,6 +49,9 @@ public class GuideTagService {
                 guideTag.activate();
             }
         } else {
+            // Guide 엔티티가 필요한 경우에만 조회
+            Guide guide = guideRepository.findById(guideId)
+                    .orElseThrow(() -> new NoticeException(ErrorMessage.GUIDE_NOT_FOUND));
             guideTagRepository.save(GuideTag.builder().guide(guide).tag(tag).build());
         }
 

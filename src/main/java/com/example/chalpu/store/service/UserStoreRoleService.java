@@ -39,7 +39,8 @@ public class UserStoreRoleService {
     public PageResponse<StoreResponse> getMyStores(Long userId, Pageable pageable) {
         Page<UserStoreRole> userStoreRolePage = userStoreRoleRepository.findByUserId(userId, pageable);
         Page<StoreResponse> storeResponsePage = userStoreRolePage.map(usr -> StoreResponse.from(usr.getStore()));
-        log.info("userStoreRolePage: {} storeResponsePage: {}", userStoreRolePage, storeResponsePage);
+        log.info("event=my_stores_retrieved, user_id={}, total_elements={}, total_pages={}, current_page={}",
+                userId, userStoreRolePage.getTotalElements(), userStoreRolePage.getTotalPages(), userStoreRolePage.getNumber());
         return PageResponse.from(storeResponsePage);
     }
 
@@ -271,23 +272,23 @@ public class UserStoreRoleService {
      * 특정 매장에서 사용자의 권한 확인
      */
     public boolean canUserAccessStore(Long userId, Long storeId) {
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
-        
-        List<UserStoreRole> userRoles = userStoreRoleRepository.findByUserId(userId);
-        log.info("userRoles: {}", userRoles);
-        return canUserAccessStore(userRoles, store);
+        // Store 엔티티 조회 없이 storeId만으로 권한 확인
+        List<UserStoreRole> userRoles = userStoreRoleRepository.findByUserIdWithoutJoin(userId);
+        return userRoles.stream()
+                .filter(UserStoreRole::getIsActive)
+                .anyMatch(role -> role.getStore().getId().equals(storeId));
     }
 
     /**
      * 특정 매장에서 사용자의 관리 권한 확인
      */
     public boolean canUserManageStore(Long userId, Long storeId) {
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
-        
-        List<UserStoreRole> userRoles = userStoreRoleRepository.findByUserId(userId);
-        return canManageStore(userRoles, store);
+        // Store 엔티티 조회 없이 storeId만으로 권한 확인
+        Optional<UserStoreRole> userRole = userStoreRoleRepository.findByUserIdAndStoreIdWithoutJoin(userId, storeId);
+        return userRole
+                .filter(UserStoreRole::getIsActive)
+                .map(UserStoreRole::canManageStore)
+                .orElse(false);
     }
 
     // === 내부 유틸리티 메서드들 ===
