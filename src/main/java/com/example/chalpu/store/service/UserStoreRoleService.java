@@ -37,7 +37,7 @@ public class UserStoreRoleService {
      * 사용자가 속한 매장 목록 조회 (페이지네이션)
      */
     public PageResponse<StoreResponse> getMyStores(Long userId, Pageable pageable) {
-        Page<UserStoreRole> userStoreRolePage = userStoreRoleRepository.findByUserId(userId, pageable);
+        Page<UserStoreRole> userStoreRolePage = userStoreRoleRepository.findByUserIdWithStoreOnly(userId, pageable);
         Page<StoreResponse> storeResponsePage = userStoreRolePage.map(usr -> StoreResponse.from(usr.getStore()));
         log.info("event=my_stores_retrieved, user_id={}, total_elements={}, total_pages={}, current_page={}",
                 userId, userStoreRolePage.getTotalElements(), userStoreRolePage.getTotalPages(), userStoreRolePage.getNumber());
@@ -48,7 +48,7 @@ public class UserStoreRoleService {
      * 사용자가 속한 매장 목록 조회 (전체)
      */
     public List<StoreResponse> getMyStores(Long userId) {
-        List<UserStoreRole> userStoreRoles = userStoreRoleRepository.findByUserId(userId);
+        List<UserStoreRole> userStoreRoles = userStoreRoleRepository.findByUserIdWithStoreOnly(userId);
         log.info("userStoreRoles: {}", userStoreRoles);
         return userStoreRoles.stream()
                 .map(usr -> StoreResponse.from(usr.getStore()))
@@ -59,7 +59,7 @@ public class UserStoreRoleService {
      * 사용자가 소유한 매장 목록 조회
      */
     public List<StoreResponse> getOwnedStores(Long userId) {
-        List<UserStoreRole> userStoreRoles = userStoreRoleRepository.findByUserId(userId);
+        List<UserStoreRole> userStoreRoles = userStoreRoleRepository.findByUserIdWithStoreOnly(userId);
         log.info("userStoreRoles: {}", userStoreRoles);
         return userStoreRoles.stream()
                 .filter(UserStoreRole::getIsActive)
@@ -72,7 +72,7 @@ public class UserStoreRoleService {
      * 사용자가 관리할 수 있는 매장 목록 조회
      */
     public List<StoreResponse> getManageableStores(Long userId) {
-        List<UserStoreRole> userStoreRoles = userStoreRoleRepository.findByUserId(userId);
+        List<UserStoreRole> userStoreRoles = userStoreRoleRepository.findByUserIdWithStoreOnly(userId);
         log.info("userStoreRoles: {}", userStoreRoles);
         return userStoreRoles.stream()
                 .filter(UserStoreRole::getIsActive)

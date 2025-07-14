@@ -40,9 +40,6 @@ public class PhotoResponse {
     @Schema(description = "이미지 높이 (px)", example = "1080")
     private Integer imageHeight;
     
-    @Schema(description = "대표 사진 여부", example = "false")
-    private Boolean isFeatured;
-    
     @Schema(description = "생성 시간", example = "2024-01-15T09:30:00")
     private LocalDateTime createdAt;
     
@@ -56,7 +53,6 @@ public class PhotoResponse {
                 .fileSize(photo.getFileSize())
                 .imageWidth(photo.getImageWidth())
                 .imageHeight(photo.getImageHeight())
-                .isFeatured(photo.getIsFeatured())
                 .createdAt(photo.getCreatedAt())
                 .build();
     }

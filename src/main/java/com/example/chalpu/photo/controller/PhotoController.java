@@ -3,10 +3,7 @@ package com.example.chalpu.photo.controller;
 import com.example.chalpu.common.response.ApiResponse;
 import com.example.chalpu.common.response.PageResponse;
 import com.example.chalpu.oauth.security.jwt.UserDetailsImpl;
-import com.example.chalpu.photo.dto.PhotoPresignedUrlResponse;
-import com.example.chalpu.photo.dto.PhotoRegisterRequest;
-import com.example.chalpu.photo.dto.PhotoResponse;
-import com.example.chalpu.photo.dto.PhotoUploadRequest;
+import com.example.chalpu.photo.dto.*;
 import com.example.chalpu.photo.service.PhotoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -40,19 +37,19 @@ public class PhotoController {
             """)
     @PostMapping("/presigned-url")
     public ApiResponse<PhotoPresignedUrlResponse> generatePresignedUrl(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestBody PhotoUploadRequest request) {
-        String username = userDetails.getUsername();
-        return ApiResponse.success(photoService.generatePresignedUrl(username, request));
+        Long userId = userDetails.getId();
+        return ApiResponse.success(photoService.generatePresignedUrl(userId, request));
     }
 
     @Operation(summary = "사진 정보 등록", description = "S3에 업로드 완료 후, 파일 메타데이터를 서버에 등록합니다.")
     @PostMapping("/register")
     public ApiResponse<PhotoResponse> registerPhoto(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestBody PhotoRegisterRequest request) {
-        String username = userDetails.getUsername();
-        return ApiResponse.success(photoService.registerPhoto(username, request));
+        Long userId = userDetails.getId();
+        return ApiResponse.success(photoService.registerPhoto(userId, request));
     }
     
     @Operation(summary = "가게별 사진 목록 조회", description = "특정 가게에 속한 사진 목록을 페이지네이션하여 조회합니다.")
@@ -72,6 +69,15 @@ public class PhotoController {
 
     }
 
+    @Operation(summary = "대표 사진 지정", description = "특정 음식에 대표 사진을 지정합니다.")
+    @PatchMapping("/featured")
+    public ApiResponse<Void> setFeaturedPhoto(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestBody PhotoSetFeaturedRequest request) {
+        photoService.setFeaturedPhoto(userDetails.getId(), request);
+        return ApiResponse.success();
+    }
+
     @Operation(summary = "사진 상세 조회", description = "특정 사진의 상세 정보를 조회합니다.")
     @GetMapping("/{photoId}")
     public ApiResponse<PhotoResponse> getPhoto(@PathVariable Long photoId) {
@@ -81,10 +87,10 @@ public class PhotoController {
     @Operation(summary = "사진 삭제", description = "특정 사진을 삭제합니다.")
     @DeleteMapping("/{photoId}")
     public ApiResponse<Void> deletePhoto(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable Long photoId) {
-        String username = userDetails.getUsername();
-        photoService.deletePhoto(username, photoId);
+        Long userId = userDetails.getId();
+        photoService.deletePhoto(userId, photoId);
         return ApiResponse.success();
     }
 } 

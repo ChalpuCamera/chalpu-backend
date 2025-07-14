@@ -32,6 +32,7 @@ public class FoodItem extends BaseTimeEntity {
     private String ingredients;
     private String cookingMethod;
     private BigDecimal price;
+    private String thumbnailUrl;
     
     @Builder.Default
     private Boolean isActive = true;
