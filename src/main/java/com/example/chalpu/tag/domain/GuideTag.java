@@ -8,6 +8,27 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@NamedEntityGraph(
+    name = "GuideTag.withGuideAndTag",
+    attributeNodes = {
+        @NamedAttributeNode(value = "guide", subgraph = "guide-subgraph"),
+        @NamedAttributeNode("tag")
+    },
+    subgraphs = {
+        @NamedSubgraph(
+            name = "guide-subgraph",
+            attributeNodes = {
+                @NamedAttributeNode(value = "subCategory", subgraph = "subcategory-subgraph")
+            }
+        ),
+        @NamedSubgraph(
+            name = "subcategory-subgraph",
+            attributeNodes = {
+                @NamedAttributeNode("category")
+            }
+        )
+    }
+)
 @Entity
 @Getter
 @Table(name = "guide_tags")

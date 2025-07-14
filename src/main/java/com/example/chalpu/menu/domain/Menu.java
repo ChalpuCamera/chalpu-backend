@@ -6,6 +6,7 @@ import lombok.*;
 import com.example.chalpu.store.domain.Store;
 import com.example.chalpu.menu.dto.MenuRequest;
 
+@NamedEntityGraph(name = "Menu.withStore", attributeNodes = @NamedAttributeNode("store"))
 @Entity
 @Table(name = "menus")
 @Getter
@@ -19,7 +20,7 @@ public class Menu extends BaseTimeEntity {
     @Column(name = "menu_id")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")
     private Store store;
 

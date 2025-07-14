@@ -9,6 +9,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.sql.Timestamp;
 
+@NamedEntityGraph(
+    name = "Photo.withAll",
+    attributeNodes = {
+        @NamedAttributeNode("user"),
+        @NamedAttributeNode("store"),
+        @NamedAttributeNode("foodItem")
+    }
+)
 @Entity
 @Table(name = "photos")
 @Data
@@ -22,15 +30,15 @@ public class Photo extends BaseTimeEntity {
     @Column(name = "photo_id")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")
     private Store store;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "food_id")
     private FoodItem foodItem;
 

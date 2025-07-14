@@ -5,6 +5,13 @@ import lombok.*;
 import com.example.chalpu.fooditem.domain.FoodItem;
 import com.example.chalpu.menu.dto.MenuItemRequest;
 
+@NamedEntityGraph(
+    name = "MenuItem.withMenuAndFoodItem",
+    attributeNodes = {
+        @NamedAttributeNode("menu"),
+        @NamedAttributeNode("foodItem")
+    }
+)
 @Entity
 @Table(name = "menu_items")
 @Getter
@@ -16,11 +23,11 @@ public class MenuItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 고유 PK
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_id", nullable = false)
     private Menu menu;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "food_id", nullable = false)
     private FoodItem foodItem;
 

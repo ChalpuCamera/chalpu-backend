@@ -26,7 +26,7 @@ public class Category extends BaseTimeEntity {
     @Column(nullable = false, length = 50)
     private String englishName;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<SubCategory> subCategories = new ArrayList<>();
 
     @Builder

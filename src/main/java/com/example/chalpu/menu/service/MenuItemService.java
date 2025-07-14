@@ -140,7 +140,7 @@ public class MenuItemService {
     }
 
     private FoodItem findActiveFoodItemById(Long foodId) {
-        return foodItemRepository.findByIdAndIsActiveTrue(foodId)
+        return foodItemRepository.findByIdAndIsActiveTrueWithoutJoin(foodId)
                 .orElseThrow(() -> new FoodException(ErrorMessage.FOOD_NOT_FOUND));
     }
 

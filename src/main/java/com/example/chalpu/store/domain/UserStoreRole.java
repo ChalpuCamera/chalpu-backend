@@ -6,6 +6,13 @@ import lombok.*;
 import com.example.chalpu.user.domain.User;
 
 
+@NamedEntityGraph(
+    name = "UserStoreRole.withUserAndStore",
+    attributeNodes = {
+        @NamedAttributeNode("user"),
+        @NamedAttributeNode("store")
+    }
+)
 @Entity
 @Table(name = "user_store_roles")
 @Getter

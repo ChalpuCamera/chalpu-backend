@@ -102,7 +102,7 @@ public class GuideService {
 
     @Transactional
     public GuideResponse updateGuide(Long guideId, GuideUpdateRequest request) {
-        Guide guide = guideRepository.findById(guideId)
+        Guide guide = guideRepository.findByIdAndIsActiveTrueWithoutJoin(guideId)
                 .orElseThrow(() -> new NoticeException(ErrorMessage.GUIDE_NOT_FOUND));
 
         SubCategory subCategory = null;

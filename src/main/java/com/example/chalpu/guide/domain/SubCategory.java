@@ -4,6 +4,10 @@ import com.example.chalpu.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+@NamedEntityGraph(
+    name = "SubCategory.withCategory",
+    attributeNodes = @NamedAttributeNode("category")
+)
 @Entity
 @Getter
 @Setter

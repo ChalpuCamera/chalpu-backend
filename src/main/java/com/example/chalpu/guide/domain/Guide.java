@@ -11,6 +11,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
+@NamedEntityGraph(
+    name = "Guide.withSubCategoryAndCategory",
+    attributeNodes = {
+        @NamedAttributeNode(value = "subCategory", subgraph = "subCategory-with-category")
+    },
+    subgraphs = {
+        @NamedSubgraph(
+            name = "subCategory-with-category",
+            attributeNodes = {
+                @NamedAttributeNode("category")
+            }
+        )
+    }
+)
 @Builder
 @Entity
 @Table(name = "guides")
