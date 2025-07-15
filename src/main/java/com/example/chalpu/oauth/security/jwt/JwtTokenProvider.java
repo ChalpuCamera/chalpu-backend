@@ -49,13 +49,12 @@ public class JwtTokenProvider {
         Instant now = Instant.now();
         Instant expiration = now.plus(accessTokenValidityInMinutes, ChronoUnit.MINUTES);
 
-        return Jwts.builder()
-                .setSubject(userId.toString())
+        return Jwts.builder().subject(userId.toString())
                 .claim("email", email)
                 .claim("role", role)
                 .claim("type", "access")
-                .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(expiration))
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiration))
                 .signWith(secretKey)
                 .compact();
     }
@@ -65,11 +64,8 @@ public class JwtTokenProvider {
         Instant now = Instant.now();
         Instant expiration = now.plus(refreshTokenValidityInDays, ChronoUnit.DAYS);
 
-        return Jwts.builder()
-                .setSubject(userId.toString())
-                .claim("type", "refresh")
-                .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(expiration))
+        return Jwts.builder().subject(userId.toString())
+                .claim("type", "refresh").issuedAt(Date.from(now)).expiration(Date.from(expiration))
                 .signWith(secretKey)
                 .compact();
     }
@@ -82,12 +78,12 @@ public class JwtTokenProvider {
         Instant expiration = now.plus(3650, ChronoUnit.DAYS); // 10 years
 
         return Jwts.builder()
-                .setSubject(userId.toString())
+                .subject(userId.toString())
                 .claim("email", email)
                 .claim("role", role)
                 .claim("type", "access")
-                .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(expiration))
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiration))
                 .signWith(secretKey)
                 .compact();
     }
@@ -149,7 +145,7 @@ public class JwtTokenProvider {
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }
