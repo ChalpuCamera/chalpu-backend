@@ -128,7 +128,7 @@ public class MenuItemService {
      */
     @Transactional
     public void softDeleteMenuItemsByMenu(Menu menu) {
-        List<MenuItem> menuItems = menuItemRepository.findByMenu(menu);
+        List<MenuItem> menuItems = menuItemRepository.findByMenuAndIsActiveTrue(menu);
         menuItems.forEach(MenuItem::softDelete);
         log.info("event=menu_items_deleted_by_menu, menu_id={}, count={}", 
                 menu.getId(), menuItems.size());

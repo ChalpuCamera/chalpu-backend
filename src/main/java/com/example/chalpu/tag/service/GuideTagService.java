@@ -39,7 +39,7 @@ public class GuideTagService {
                 .orElseGet(() -> tagRepository.save(Tag.builder().name(tagName).build()));
 
         // 기존 GuideTag 존재 여부 확인 (경량화된 쿼리 사용)
-        Optional<GuideTag> existingGuideTag = guideTagRepository.findByGuideIdAndTagIdWithoutJoin(guideId, tag.getId());
+        Optional<GuideTag> existingGuideTag = guideTagRepository.findByGuideIdAndTagIdAndIsActiveTrueWithoutJoin(guideId, tag.getId());
 
         if (existingGuideTag.isPresent()) {
             GuideTag guideTag = existingGuideTag.get();

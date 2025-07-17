@@ -85,7 +85,7 @@ public class UserFCMToken extends BaseTimeEntity {
      * 토큰 비활성화
      * 무효한 토큰인 경우 비활성화 처리
      */
-    public void deactivate() {
+    public void softDelete() {
         this.isActive = false;
     }
 

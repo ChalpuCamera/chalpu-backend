@@ -113,7 +113,7 @@ public class GuideService {
 
         guide.update(request.getContent(), request.getFileName(), subCategory);
 
-        List<GuideTag> guideTags = guideTagRepository.findByGuide(guide);
+        List<GuideTag> guideTags = guideTagRepository.findByGuideAndIsActiveTrue(guide);
         log.info("event=guide_updated, guide_id={}", guideId);
         return GuideResponse.from(guide, guideTags);
     }
@@ -121,14 +121,14 @@ public class GuideService {
     public GuideResponse findById(Long guideId) {
         Guide guide = guideRepository.findByIdAndIsActiveTrue(guideId)
             .orElseThrow(() -> new NoticeException(ErrorMessage.GUIDE_NOT_FOUND));
-        List<GuideTag> guideTags = guideTagRepository.findByGuide(guide);
+        List<GuideTag> guideTags = guideTagRepository.findByGuideAndIsActiveTrue(guide);
         return GuideResponse.from(guide, guideTags);
     }
 
     public PageResponse<GuideResponse> findAll(Pageable pageable) {
         Page<Guide> guidesPage = guideRepository.findAllByIsActiveTrue(pageable);
         List<GuideResponse> guideResponses = guidesPage.getContent().stream()
-                .map(guide -> GuideResponse.from(guide, guideTagRepository.findByGuide(guide)))
+                .map(guide -> GuideResponse.from(guide, guideTagRepository.findByGuideAndIsActiveTrue(guide)))
                 .collect(Collectors.toList());
         return PageResponse.from(new PageImpl<>(guideResponses, pageable, guidesPage.getTotalElements()));
     }
@@ -136,7 +136,7 @@ public class GuideService {
     public PageResponse<GuideResponse> findAllBySubCategory(Long subCategoryId, Pageable pageable) {
         Page<Guide> guidesPage = guideRepository.findBySubCategoryIdAndIsActiveTrue(subCategoryId, pageable);
         List<GuideResponse> guideResponses = guidesPage.getContent().stream()
-                .map(guide -> GuideResponse.from(guide, guideTagRepository.findByGuide(guide)))
+                .map(guide -> GuideResponse.from(guide, guideTagRepository.findByGuideAndIsActiveTrue(guide)))
                 .collect(Collectors.toList());
         return PageResponse.from(new PageImpl<>(guideResponses, pageable, guidesPage.getTotalElements()));
     }
@@ -199,7 +199,7 @@ public class GuideService {
         }
 
         return tagNames.stream().map(tagName ->
-                tagRepository.findByName(tagName)
+                tagRepository.findByNameAndIsActiveTrue(tagName)
                         .orElseGet(() -> tagRepository.save(Tag.builder().name(tagName).build()))
         ).collect(Collectors.toList());
     }
