@@ -38,6 +38,10 @@ public class Store extends BaseTimeEntity {
     @Column(length = 50, unique = true)
     private String businessRegistrationNumber;
 
+    @Builder.Default
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
+
     public static Store createStore(StoreRequest storeRequest){
         return Store.builder()
                 .storeName(storeRequest.getStoreName())
@@ -54,5 +58,9 @@ public class Store extends BaseTimeEntity {
         this.address = storeRequest.getAddress();
         this.phone = storeRequest.getPhone();
         this.businessRegistrationNumber = storeRequest.getBusinessRegistrationNumber();
+    }
+
+    public void softDelete() {
+        this.isActive = false;
     }
 } 

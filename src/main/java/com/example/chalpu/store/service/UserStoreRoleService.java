@@ -37,7 +37,7 @@ public class UserStoreRoleService {
      * 사용자가 속한 매장 목록 조회 (페이지네이션)
      */
     public PageResponse<StoreResponse> getMyStores(Long userId, Pageable pageable) {
-        Page<UserStoreRole> userStoreRolePage = userStoreRoleRepository.findByUserIdWithStoreOnly(userId, pageable);
+        Page<UserStoreRole> userStoreRolePage = userStoreRoleRepository.findByUserIdAndIsActiveTrueWithStoreOnly(userId, pageable);
         Page<StoreResponse> storeResponsePage = userStoreRolePage.map(usr -> StoreResponse.from(usr.getStore()));
         log.info("event=my_stores_retrieved, user_id={}, total_elements={}, total_pages={}, current_page={}",
                 userId, userStoreRolePage.getTotalElements(), userStoreRolePage.getTotalPages(), userStoreRolePage.getNumber());
@@ -48,7 +48,7 @@ public class UserStoreRoleService {
      * 사용자가 속한 매장 목록 조회 (전체)
      */
     public List<StoreResponse> getMyStores(Long userId) {
-        List<UserStoreRole> userStoreRoles = userStoreRoleRepository.findByUserIdWithStoreOnly(userId);
+        List<UserStoreRole> userStoreRoles = userStoreRoleRepository.findByUserIdAndIsActiveTrueWithStoreOnly(userId);
         log.info("userStoreRoles: {}", userStoreRoles);
         return userStoreRoles.stream()
                 .map(usr -> StoreResponse.from(usr.getStore()))
@@ -59,7 +59,7 @@ public class UserStoreRoleService {
      * 사용자가 소유한 매장 목록 조회
      */
     public List<StoreResponse> getOwnedStores(Long userId) {
-        List<UserStoreRole> userStoreRoles = userStoreRoleRepository.findByUserIdWithStoreOnly(userId);
+        List<UserStoreRole> userStoreRoles = userStoreRoleRepository.findByUserIdAndIsActiveTrueWithStoreOnly(userId);
         log.info("userStoreRoles: {}", userStoreRoles);
         return userStoreRoles.stream()
                 .filter(UserStoreRole::getIsActive)
@@ -72,7 +72,7 @@ public class UserStoreRoleService {
      * 사용자가 관리할 수 있는 매장 목록 조회
      */
     public List<StoreResponse> getManageableStores(Long userId) {
-        List<UserStoreRole> userStoreRoles = userStoreRoleRepository.findByUserIdWithStoreOnly(userId);
+        List<UserStoreRole> userStoreRoles = userStoreRoleRepository.findByUserIdAndIsActiveTrueWithStoreOnly(userId);
         log.info("userStoreRoles: {}", userStoreRoles);
         return userStoreRoles.stream()
                 .filter(UserStoreRole::getIsActive)
@@ -89,7 +89,7 @@ public class UserStoreRoleService {
                 .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
 
         // 권한 검증: 해당 매장에 속한 사용자만 멤버 목록 조회 가능
-        List<UserStoreRole> requestUserRoles = userStoreRoleRepository.findByUserId(requestUserId);
+        List<UserStoreRole> requestUserRoles = userStoreRoleRepository.findByUserIdAndIsActiveTrue(requestUserId);
         if (!canUserAccessStore(requestUserRoles, store)) {
             log.error("canUserAccessStore: {}, 해당 매장에 속하지 않습니다.", canUserAccessStore(requestUserRoles, store));
             throw new StoreException(ErrorMessage.STORE_ACCESS_DENIED);
@@ -148,13 +148,13 @@ public class UserStoreRoleService {
                     .orElseThrow(() -> new StoreException(ErrorMessage.USER_NOT_FOUND));
 
             // 권한 검증: 멤버 초대 권한이 있는지 확인
-            List<UserStoreRole> inviterRoles = userStoreRoleRepository.findByUserId(inviterUserId);
+            List<UserStoreRole> inviterRoles = userStoreRoleRepository.findByUserIdAndIsActiveTrue(inviterUserId);
             if (!canInviteMembers(inviterRoles, store)) {
                 throw new StoreException(ErrorMessage.STORE_ACCESS_DENIED);
             }
 
             // 이미 매장 구성원인지 확인
-            userStoreRoleRepository.findByUserIdAndStoreId(memberRequest.getUserId(), storeId)
+            userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(memberRequest.getUserId(), storeId)
                 .ifPresent(existingRole -> {
                     throw new StoreException(ErrorMessage.STORE_MEMBER_ALREADY_EXISTS);
                 });
@@ -184,10 +184,10 @@ public class UserStoreRoleService {
                     .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
 
             // 요청자와 대상자의 역할 조회
-            UserStoreRole requestUserRole = userStoreRoleRepository.findByUserIdAndStoreId(requestUserId, storeId)
+            UserStoreRole requestUserRole = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(requestUserId, storeId)
                     .orElseThrow(() -> new StoreException(ErrorMessage.STORE_ACCESS_DENIED));
 
-            UserStoreRole targetRole = userStoreRoleRepository.findByUserIdAndStoreId(targetUserId, storeId)
+            UserStoreRole targetRole = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(targetUserId, storeId)
                     .orElseThrow(() -> new StoreException(ErrorMessage.STORE_MEMBER_NOT_FOUND));
 
             // 권한 검증
@@ -214,16 +214,13 @@ public class UserStoreRoleService {
     @Transactional
     public void removeMember(Long storeId, Long targetUserId, Long requestUserId) {
         try {
-            Store store = storeRepository.findById(storeId)
-                    .orElseThrow(() -> new StoreException(ErrorMessage.STORE_NOT_FOUND));
-
             // 요청자의 권한 확인
             if (!canUserManageStore(requestUserId, storeId)) {
                 throw new StoreException(ErrorMessage.STORE_ACCESS_DENIED);
             }
 
             // 대상자 역할 조회
-            UserStoreRole targetRole = userStoreRoleRepository.findByUserIdAndStoreId(targetUserId, storeId)
+            UserStoreRole targetRole = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(targetUserId, storeId)
                     .orElseThrow(() -> new StoreException(ErrorMessage.STORE_MEMBER_NOT_FOUND));
 
             // 본인은 제거할 수 없음
@@ -231,7 +228,7 @@ public class UserStoreRoleService {
                 throw new StoreException(ErrorMessage.INVALID_REQUEST);
             }
 
-            targetRole.deactivate();
+            targetRole.softDelete();
             userStoreRoleRepository.save(targetRole);
             
             log.info("event=member_removed, store_id={}, target_user_id={}, request_user_id={}",
@@ -249,7 +246,7 @@ public class UserStoreRoleService {
     @Transactional
     public void leaveStore(Long storeId, Long userId) {
         try {
-            UserStoreRole userRole = userStoreRoleRepository.findByUserIdAndStoreId(userId, storeId)
+            UserStoreRole userRole = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrue(userId, storeId)
                     .orElseThrow(() -> new StoreException(ErrorMessage.STORE_MEMBER_NOT_FOUND));
 
             // 소유자는 탈퇴할 수 없음
@@ -257,7 +254,7 @@ public class UserStoreRoleService {
                 throw new StoreException(ErrorMessage.STORE_OWNER_CANNOT_LEAVE);
             }
 
-            userRole.deactivate();
+            userRole.softDelete();
             userStoreRoleRepository.save(userRole);
             
             log.info("event=member_left_store, store_id={}, user_id={}", storeId, userId);
@@ -273,7 +270,7 @@ public class UserStoreRoleService {
      */
     public boolean canUserAccessStore(Long userId, Long storeId) {
         // Store 엔티티 조회 없이 storeId만으로 권한 확인
-        List<UserStoreRole> userRoles = userStoreRoleRepository.findByUserIdWithoutJoin(userId);
+        List<UserStoreRole> userRoles = userStoreRoleRepository.findByUserIdAndIsActiveTrueWithoutJoin(userId);
         return userRoles.stream()
                 .filter(UserStoreRole::getIsActive)
                 .anyMatch(role -> role.getStore().getId().equals(storeId));
@@ -284,7 +281,7 @@ public class UserStoreRoleService {
      */
     public boolean canUserManageStore(Long userId, Long storeId) {
         // Store 엔티티 조회 없이 storeId만으로 권한 확인
-        Optional<UserStoreRole> userRole = userStoreRoleRepository.findByUserIdAndStoreIdWithoutJoin(userId, storeId);
+        Optional<UserStoreRole> userRole = userStoreRoleRepository.findByUserIdAndStoreIdAndIsActiveTrueWithoutJoin(userId, storeId);
         return userRole
                 .filter(UserStoreRole::getIsActive)
                 .map(UserStoreRole::canManageStore)

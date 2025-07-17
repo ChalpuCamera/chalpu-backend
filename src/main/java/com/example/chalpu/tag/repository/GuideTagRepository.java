@@ -13,23 +13,19 @@ import java.util.Optional;
 
 public interface GuideTagRepository extends JpaRepository<GuideTag, Long> {
     @EntityGraph("GuideTag.withGuideAndTag")
-    List<GuideTag> findByGuide(Guide guide);
+    List<GuideTag> findByGuideAndIsActiveTrue(Guide guide);
     @EntityGraph("GuideTag.withGuideAndTag")
-    List<GuideTag> findByGuideIn(List<Guide> guides);
+    List<GuideTag> findByGuideInAndIsActiveTrue(List<Guide> guides);
     @EntityGraph("GuideTag.withGuideAndTag")
-    Optional<GuideTag> findByGuideAndTag(Guide guide, Tag tag);
-    @EntityGraph("GuideTag.withGuideAndTag")
-    Optional<GuideTag> findByGuideIdAndTagId(Long guideId, Long tagId);
-    @EntityGraph("GuideTag.withGuideAndTag")
-    List<GuideTag> findByGuideId(Long guideId);
+    Optional<GuideTag> findByGuideAndTagAndIsActiveTrue(Guide guide, Tag tag);
     @EntityGraph("GuideTag.withGuideAndTag")
     Optional<GuideTag> findByGuideIdAndTagIdAndIsActiveTrue(Long guideId, Long tagId);
     @EntityGraph("GuideTag.withGuideAndTag")
     List<GuideTag> findByGuideIdAndIsActiveTrue(Long guideId);
 
     // 최적화된 메서드들 - 연관 엔티티 조회 없이 ID만으로 처리
-    @Query("SELECT gt FROM GuideTag gt WHERE gt.guide.id = :guideId AND gt.tag.id = :tagId")
-    Optional<GuideTag> findByGuideIdAndTagIdWithoutJoin(@Param("guideId") Long guideId, @Param("tagId") Long tagId);
+    @Query("SELECT gt FROM GuideTag gt WHERE gt.guide.id = :guideId AND gt.tag.id = :tagId AND gt.isActive = true")
+    Optional<GuideTag> findByGuideIdAndTagIdAndIsActiveTrueWithoutJoin(@Param("guideId") Long guideId, @Param("tagId") Long tagId);
     
     @Query("SELECT CASE WHEN COUNT(gt) > 0 THEN true ELSE false END FROM GuideTag gt WHERE gt.guide.id = :guideId AND gt.tag.id = :tagId AND gt.isActive = true")
     boolean existsByGuideIdAndTagIdAndIsActiveTrue(@Param("guideId") Long guideId, @Param("tagId") Long tagId);

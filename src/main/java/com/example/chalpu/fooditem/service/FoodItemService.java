@@ -7,6 +7,9 @@ import com.example.chalpu.fooditem.domain.FoodItem;
 import com.example.chalpu.fooditem.dto.FoodItemRequest;
 import com.example.chalpu.fooditem.dto.FoodItemResponse;
 import com.example.chalpu.fooditem.repository.FoodItemRepository;
+import com.example.chalpu.menu.domain.MenuItem;
+import com.example.chalpu.menu.repository.MenuItemRepository;
+import com.example.chalpu.photo.repository.PhotoRepository;
 import com.example.chalpu.store.domain.Store;
 import com.example.chalpu.store.repository.StoreRepository;
 import com.example.chalpu.store.service.UserStoreRoleService;
@@ -28,6 +31,8 @@ public class FoodItemService {
     private final FoodItemRepository foodItemRepository;
     private final StoreRepository storeRepository;
     private final UserStoreRoleService userStoreRoleService;
+    private final MenuItemRepository menuItemRepository;
+    private final PhotoRepository photoRepository;
 
     /**
      * 매장별 음식 아이템 목록 조회 (활성 음식만)
@@ -116,11 +121,18 @@ public class FoodItemService {
             throw new FoodException(ErrorMessage.STORE_ACCESS_DENIED);
         }
 
-        // 실제 삭제용 - 경량화된 조회
+        // 1. 연관된 Photo들 소프트 딜리트
+        photoRepository.softDeleteByFoodItemId(foodItemId);
+
+        // 2. 연관된 MenuItem들 소프트 딜리트
+        List<MenuItem> menuItems = menuItemRepository.findByFoodItemIdAndIsActiveTrue(foodItemId);
+        menuItems.forEach(MenuItem::softDelete);
+
+        // 3. FoodItem 자체 소프트 딜리트
         FoodItem foodItem = foodItemRepository.findByIdAndIsActiveTrueWithoutJoin(foodItemId)
                 .orElseThrow(() -> new FoodException(ErrorMessage.FOOD_NOT_FOUND));
-
         foodItem.softDelete();
+
         foodItemRepository.save(foodItem);
 
         log.info("event=food_item_deleted, food_item_id={}, store_id={}", foodItemId, storeId);

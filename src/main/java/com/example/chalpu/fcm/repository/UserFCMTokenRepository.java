@@ -40,11 +40,11 @@ public interface UserFCMTokenRepository extends JpaRepository<UserFCMToken, Long
     Optional<UserFCMToken> findByUserIdAndDeviceTypeAndIsActiveTrue(Long userId, DeviceType deviceType);
     
     /**
-     * FCM 토큰으로 조회
+     * FCM 토큰으로 활성화된 토큰 조회
      * @param fcmToken FCM 토큰
      * @return FCM 토큰 엔티티 (Optional)
      */
-    Optional<UserFCMToken> findByFcmToken(String fcmToken);
+    Optional<UserFCMToken> findByFcmTokenAndIsActiveTrue(String fcmToken);
     
     /**
      * 여러 사용자 ID로 활성화된 토큰들 조회
@@ -78,6 +78,14 @@ public interface UserFCMTokenRepository extends JpaRepository<UserFCMToken, Long
     @Modifying
     @Query("UPDATE UserFCMToken t SET t.isActive = false WHERE t.userId = :userId")
     void deactivateAllTokensByUserId(@Param("userId") Long userId);
+    
+    /**
+     * 음식 아이템과 연관된 모든 토큰들을 소프트 딜리트 (사용자 기준)
+     * @param userId 사용자 ID
+     */
+    @Modifying  
+    @Query("UPDATE UserFCMToken t SET t.isActive = false WHERE t.userId = :userId")
+    void softDeleteByUserId(@Param("userId") Long userId);
     
     /**
      * 사용자 ID로 토큰 존재 여부 확인

@@ -13,11 +13,13 @@ import java.util.Optional;
 
 @Repository
 public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
-    List<MenuItem> findByMenu(Menu menu);
+    List<MenuItem> findByMenuAndIsActiveTrue(Menu menu);
 
     @EntityGraph(value = "MenuItem.withMenuAndFoodItem")
     Optional<MenuItem> findByIdAndIsActiveTrue(Long menuItemId);
 
     @EntityGraph(value = "MenuItem.withMenuAndFoodItem")
     Page<MenuItem> findByMenuIdAndIsActiveTrue(Long menuId, Pageable pageable);
+
+    List<MenuItem> findByFoodItemIdAndIsActiveTrue(Long foodItemId);
 } 

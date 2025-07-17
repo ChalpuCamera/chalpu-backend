@@ -16,6 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 @RestController
 @RequestMapping("/api/user")
@@ -43,5 +44,16 @@ public class UserController {
         UserDto userDto = new UserDto(user);
         
         return ResponseEntity.ok(ApiResponse.success("사용자 정보 조회가 완료되었습니다.", userDto));
+    }
+
+    @Operation(
+        summary = "사용자 정보 삭제",
+        description = "사용자 정보를 삭제합니다.",
+        security = { @SecurityRequirement(name = "bearerAuth") }
+    )
+    @DeleteMapping("/me")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@AuthenticationPrincipal UserDetailsImpl currentUser) {
+        userService.softDelete(currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success());
     }
 }

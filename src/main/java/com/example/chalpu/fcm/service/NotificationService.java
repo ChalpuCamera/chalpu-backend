@@ -163,7 +163,7 @@ public class NotificationService {
                         .setApnsConfig(buildApnsConfig(request))
                         .build();
                 
-                BatchResponse batchResponse = FirebaseMessaging.getInstance().sendMulticast(message);
+                BatchResponse batchResponse = FirebaseMessaging.getInstance().sendEachForMulticast(message);
                 totalSuccess += batchResponse.getSuccessCount();
                 totalFailure += batchResponse.getFailureCount();
                 
@@ -290,7 +290,7 @@ public class NotificationService {
      * 토큰 마지막 사용 시간 업데이트
      */
     public void updateTokenLastUsed(String fcmToken) {
-        tokenRepository.findByFcmToken(fcmToken)
+        tokenRepository.findByFcmTokenAndIsActiveTrue(fcmToken)
                 .ifPresent(UserFCMToken::updateLastUsed);
     }
     

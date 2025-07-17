@@ -102,7 +102,7 @@ public class PhotoService {
 
     public PageResponse<PhotoResponse> getPhotosByStore(final Long storeId, final Pageable pageable) {
         try {
-            Page<Photo> photoPage = photoRepository.findByStoreIdWithJoin(storeId, pageable);
+            Page<Photo> photoPage = photoRepository.findByStoreIdAndIsActiveTrueWithoutJoin(storeId, pageable);
             return PageResponse.from(photoPage.map(photo -> PhotoResponse.from(photo, cloudfrontDomain)));
         } catch (Exception e) {
             log.error("event=photos_by_store_failed, store_id={}, error_message={}",
@@ -113,7 +113,7 @@ public class PhotoService {
 
     public PageResponse<PhotoResponse> getPhotosByFoodItem(final Long foodItemId, final Pageable pageable) {
         try {
-            Page<Photo> photoPage = photoRepository.findByFoodItemIdWithoutJoin(foodItemId, pageable);
+            Page<Photo> photoPage = photoRepository.findByFoodItemIdAndIsActiveTrueWithoutJoin(foodItemId, pageable);
             return PageResponse.from(photoPage.map(photo -> PhotoResponse.from(photo, cloudfrontDomain)));
         } catch (Exception e) {
             log.error("event=photos_by_food_item_failed, food_item_id={}, error_message={}",
@@ -141,7 +141,7 @@ public class PhotoService {
                 throw new PhotoException(ErrorMessage.STORE_ACCESS_DENIED);
             }
             deleteS3Object(photo.getS3Key());
-            photo.setIsActive(false);
+            photo.softDelete();
             log.info("event=photo_deleted, photo_id={}, user_id={}", photoId, userId);
         } catch (Exception e) {
             log.error("event=photo_deletion_failed, photo_id={}, user_id={}, error_message={}",

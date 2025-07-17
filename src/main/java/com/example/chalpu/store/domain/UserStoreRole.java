@@ -88,12 +88,8 @@ public class UserStoreRole extends BaseTimeEntity {
     }                                                                                       
 
     // 상태 변경 메서드
-    public void deactivate() {
+    public void softDelete() {
         this.isActive = false;
-    }
-
-    public void activate() {
-        this.isActive = true;
     }
 
     public void changeRole(StoreRoleType newRoleType) {
