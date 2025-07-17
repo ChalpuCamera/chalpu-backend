@@ -3,13 +3,9 @@ package com.example.chalpu.fooditem.domain;
 import com.example.chalpu.common.entity.BaseTimeEntity;
 import com.example.chalpu.fooditem.dto.FoodItemRequest;
 import com.example.chalpu.store.domain.Store;
-import com.example.chalpu.photo.domain.Photo;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @NamedEntityGraph(name = "FoodItem.withStore", attributeNodes = @NamedAttributeNode("store"))
 @Entity
@@ -28,9 +24,6 @@ public class FoodItem extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")
     private Store store;
-
-    @OneToMany(mappedBy = "foodItem", fetch = FetchType.LAZY)
-    private List<Photo> photos = new ArrayList<>();
 
     @Column(length = 100, nullable = false)
     private String foodName;
@@ -72,7 +65,6 @@ public class FoodItem extends BaseTimeEntity {
     // 소프트 딜리트
     public void softDelete() {
         this.isActive = false;
-        // 연관된 Photo들도 소프트 딜리트
-        this.photos.forEach(Photo::softDelete);
+        // 연관된 엔티티들은 Repository를 통해 서비스 레이어에서 처리
     }
 } 

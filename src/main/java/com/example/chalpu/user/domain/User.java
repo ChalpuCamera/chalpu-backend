@@ -3,15 +3,9 @@ package com.example.chalpu.user.domain;
 import com.example.chalpu.common.entity.BaseTimeEntity;
 import com.example.chalpu.oauth.model.AuthProvider;
 import com.example.chalpu.oauth.model.RefreshToken;
-import com.example.chalpu.store.domain.UserStoreRole;
-import com.example.chalpu.fcm.domain.UserFCMToken;
-import com.example.chalpu.photo.domain.Photo;
 import jakarta.persistence.*;
 import lombok.*;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -61,15 +55,6 @@ public class User extends BaseTimeEntity {
     // 프로필 이미지 URL
     private String picture;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<UserStoreRole> userStoreRoles = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)  
-    private List<Photo> photos = new ArrayList<>();
-
-    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private RefreshToken refreshToken;
-
     // OAuth 정보 업데이트 (기존 사용자)
     public void updateOAuth2Info(String name, String picture) {
         this.name = name;
@@ -78,14 +63,6 @@ public class User extends BaseTimeEntity {
 
     public void softDelete() {
         this.isActive = false;
-        
-        // 연관된 UserStoreRole들 소프트 딜리트
-        this.userStoreRoles.forEach(UserStoreRole::softDelete);
-        
-        // 연관된 Photo들 소프트 딜리트  
-        this.photos.forEach(Photo::softDelete);
-        
-        // RefreshToken은 하드 딜리트 (cascade로 자동 처리됨)
-        // UserFCMToken들은 Repository를 통해 별도 처리 필요
+        // 연관된 엔티티들은 Repository를 통해 서비스 레이어에서 처리
     }
 }
