@@ -52,6 +52,14 @@ resource "aws_security_group" "launch_wizard_1" {
   tags = { Name = "launch-wizard-1" }
 }
 
+# 7. monitoring (모니터링 스택용 보안 그룹)
+resource "aws_security_group" "monitoring" {
+  name        = "monitoring-stack"
+  description = "Security group for Grafana, Loki, Prometheus monitoring stack"
+  vpc_id      = aws_vpc.main.id
+  tags = { Name = "monitoring-stack" }
+}
+
 
 # =======================================================
 #          Security Group Rules (규칙 분리)
@@ -200,4 +208,55 @@ resource "aws_security_group_rule" "lw1_egress" {
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.launch_wizard_1.id
+}
+
+# -- monitoring (모니터링 스택) 보안 그룹 규칙 --
+# SSH 접근
+resource "aws_security_group_rule" "monitoring_ssh" {
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.monitoring.id
+}
+
+# Grafana 웹 인터페이스 (포트 3000) - VPC 내부에서만 접근
+resource "aws_security_group_rule" "monitoring_grafana" {
+  type              = "ingress"
+  from_port         = 3000
+  to_port           = 3000
+  protocol          = "tcp"
+  cidr_blocks       = ["172.31.0.0/16"]
+  security_group_id = aws_security_group.monitoring.id
+}
+
+# Prometheus 웹 인터페이스 (포트 9090) - VPC 내부에서만 접근
+resource "aws_security_group_rule" "monitoring_prometheus" {
+  type              = "ingress"
+  from_port         = 9090
+  to_port           = 9090
+  protocol          = "tcp"
+  cidr_blocks       = ["172.31.0.0/16"]
+  security_group_id = aws_security_group.monitoring.id
+}
+
+# Loki API (포트 3100) - VPC 내부에서만 접근
+resource "aws_security_group_rule" "monitoring_loki" {
+  type              = "ingress"
+  from_port         = 3100
+  to_port           = 3100
+  protocol          = "tcp"
+  cidr_blocks       = ["172.31.0.0/16"]
+  security_group_id = aws_security_group.monitoring.id
+}
+
+# 모든 아웃바운드 트래픽 허용
+resource "aws_security_group_rule" "monitoring_egress" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.monitoring.id
 } 

@@ -41,3 +41,15 @@ application-local.yml
 firebase-service-account.json
 # Test utility controller
 src/main/java/com/example/chalpu/util/TestUtilController.java
+
+### Terraform ###
+terraform/
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.tfvars
+terraform-deploy.sh
+deploy.sh
+create-parameters.sh
