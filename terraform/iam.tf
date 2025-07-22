@@ -45,7 +45,7 @@ resource "aws_iam_role" "github_actions_dev" {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
           }
           StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:ChalpuCamera/*:ref:refs/heads/dev"
+            "token.actions.githubusercontent.com:sub" = "repo:ChalpuCamera/*:ref:refs/heads/develop"
           }
         }
       }
@@ -121,11 +121,6 @@ resource "aws_iam_policy" "github_actions_dev_policy" {
           "ecs:RegisterTaskDefinition"
         ]
         Resource = "*"
-        Condition = {
-          StringLike = {
-            "ecs:service" = "*dev*"
-          }
-        }
       },
       {
         Effect = "Allow"
@@ -170,11 +165,6 @@ resource "aws_iam_policy" "github_actions_prod_policy" {
           "ecs:RegisterTaskDefinition"
         ]
         Resource = "*"
-        Condition = {
-          StringLike = {
-            "ecs:service" = "*prod*"
-          }
-        }
       },
       {
         Effect = "Allow"

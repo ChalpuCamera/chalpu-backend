@@ -44,7 +44,4 @@ resource "aws_instance" "monitoring" {
   tags = {
     Name = "chalpu-monitoring"
   }
-
-  # Grafana, Loki, Prometheus 설치 스크립트
-  user_data = file("${path.module}/monitoring-setup.sh")
 } 
