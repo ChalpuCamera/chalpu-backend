@@ -1,5 +1,6 @@
 package com.example.chalpu.home.controller;
 
+import com.example.chalpu.common.response.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,16 +19,16 @@ import java.util.List;
 public class HomeController {
 
     @GetMapping("/tips")
-    public List<PhotoTipDto> getAllTips() {
-        return Arrays.stream(PhotoTip.values())
+    public ApiResponse<List<PhotoTipDto>> getAllTips() {
+        return ApiResponse.success(Arrays.stream(PhotoTip.values())
                 .map(PhotoTipDto::from)
-                .toList();
+                .toList());
     }
 
     @GetMapping("/tips/{id}")
-    public PhotoTipDto getTipById(@PathVariable String id) {
-        return PhotoTip.findById(id)
+    public ApiResponse<PhotoTipDto> getTipById(@PathVariable String id) {
+        return ApiResponse.success(PhotoTip.findById(id)
                 .map(PhotoTipDto::from)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
     }
 }
