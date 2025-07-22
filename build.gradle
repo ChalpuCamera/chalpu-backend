@@ -52,6 +52,13 @@ dependencies {
 
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.1.1'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	
+	// Prometheus 메트릭 수집을 위한 Micrometer
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+	
+	// Loki 로그 전송을 위한 Appender
+	implementation 'com.github.loki4j:loki-logback-appender:1.5.2'
 }
 
 tasks.named('test') {

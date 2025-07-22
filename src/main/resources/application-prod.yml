@@ -63,6 +63,21 @@ server:
   tomcat:
     use-relative-redirects: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
 # OAuth2 Redirect URLs
 oauth2:
   redirect:
@@ -70,7 +85,7 @@ oauth2:
     failure-url: ${OAUTH2_REDIRECT_FAILURE_URL}
 
 fcm:
-  service-account-key-path: ${FCM_SERVICE_ACCOUNT_KEY_PATH}
+  service-account-key-json: ${FCM_SERVICE_ACCOUNT_KEY_JSON}
 
 
 cloud:
