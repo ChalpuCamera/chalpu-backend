@@ -25,6 +25,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URL;
 import java.time.Duration;
@@ -43,6 +44,7 @@ public class PhotoService {
     private final S3Client s3Client;
     private final UserStoreRoleService userStoreRoleService;
     private final FoodItemRepository foodItemRepository;
+    private final PhotoRoomService photoRoomService;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -200,6 +202,22 @@ public class PhotoService {
                 .build();
 
         return s3Presigner.presignPutObject(presignRequest).url();
+    }
+
+    public byte[] processBackgroundRemovalAsBytes(final Long userId, final MultipartFile file, final PhotoBackgroundRemovalRequest request) {
+        try {
+            // 포토룸 API로 배경 제거
+            byte[] processedImageBytes = photoRoomService.removeBackground(file);
+            
+            log.info("event=background_removal_processed, user_id={}, file_name={}", userId, request.getFileName());
+            
+            return processedImageBytes;  // 바이너리 데이터 그대로 반환
+            
+        } catch (Exception e) {
+            log.error("event=background_removal_failed, user_id={}, file_name={}, error_message={}",
+                    userId, request.getFileName(), e.getMessage(), e);
+            throw new PhotoException(ErrorMessage.PHOTO_BACKGROUND_REMOVAL_FAILED);
+        }
     }
 
     private String createS3Key(final String fileName) {

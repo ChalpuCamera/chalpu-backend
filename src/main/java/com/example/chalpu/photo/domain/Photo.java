@@ -62,4 +62,5 @@ public class Photo extends BaseTimeEntity {
     public void softDelete() {
         this.isActive = false;
     }
+
 }

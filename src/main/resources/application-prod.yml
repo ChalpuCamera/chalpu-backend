@@ -73,9 +73,9 @@ management:
       show-details: when-authorized
     prometheus:
       enabled: true
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true
 
 # OAuth2 Redirect URLs
@@ -98,3 +98,8 @@ cloud:
       static: ap-northeast-2
     stack:
       auto: false
+
+photoroom:
+  api:
+    url: https://sdk.photoroom.com/v1/segment
+    key: ${PHOTOROOM_API_KEY}

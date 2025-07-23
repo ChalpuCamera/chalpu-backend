@@ -6,11 +6,14 @@ import com.example.chalpu.oauth.security.jwt.UserDetailsImpl;
 import com.example.chalpu.photo.dto.*;
 import com.example.chalpu.photo.service.PhotoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -93,4 +96,25 @@ public class PhotoController {
         photoService.deletePhoto(userId, photoId);
         return ApiResponse.success();
     }
+
+    @Operation(summary = "배경제거 사진 처리", description = "포토룸 API를 이용해 배경을 제거한 사진을 바이너리로 반환합니다. 실제 저장은 별도 API를 사용하세요.")
+    @PostMapping(value = "/background-removal", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<byte[]> processPhotoWithBackgroundRemoval(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestParam("file") MultipartFile file,
+            @ModelAttribute PhotoBackgroundRemovalRequest request) {
+
+        // MultipartFile에서 자동으로 파일명과 크기 설정
+        if (request.getFileName() == null || request.getFileName().isEmpty()) {
+            request.setFileName(file.getOriginalFilename());
+        }
+        
+        byte[] processedImage = photoService.processBackgroundRemovalAsBytes(userDetails.getId(), file, request);
+        
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .header("Content-Disposition", "inline; filename=\"" + request.getFileName() + "_nuggi.png\"")
+                .body(processedImage);
+    }
+    
 } 

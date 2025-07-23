@@ -92,6 +92,7 @@ public enum ErrorMessage {
     PHOTO_INVALID_FORMAT(BAD_REQUEST, "지원하지 않는 사진 형식입니다."),
     PHOTO_SIZE_EXCEEDED(BAD_REQUEST, "사진 크기가 제한을 초과했습니다."),
     PHOTO_FEATURE_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "대표 사진 설정에 실패했습니다."),
+    PHOTO_BACKGROUND_REMOVAL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "배경 제거 처리에 실패했습니다."),
 
     // 알림 관련 에러
     NOTIFICATION_SERVICE_UNAVAILABLE(HttpStatus.INTERNAL_SERVER_ERROR, "알림 서비스를 사용할 수 없습니다."),
