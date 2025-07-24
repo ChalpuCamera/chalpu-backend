@@ -116,5 +116,4 @@ public class PhotoController {
                 .header("Content-Disposition", "inline; filename=\"" + request.getFileName() + "_nuggi.png\"")
                 .body(processedImage);
     }
-    
 } 

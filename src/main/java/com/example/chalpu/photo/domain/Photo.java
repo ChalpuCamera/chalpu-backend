@@ -54,9 +54,6 @@ public class Photo extends BaseTimeEntity {
     private Integer imageHeight;
 
     @Builder.Default
-    private Boolean isFeatured = false;
-
-    @Builder.Default
     private Boolean isActive = true;
 
     public void softDelete() {

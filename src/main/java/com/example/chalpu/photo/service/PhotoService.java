@@ -89,7 +89,6 @@ public class PhotoService {
                     .imageWidth(request.getImageWidth())
                     .imageHeight(request.getImageHeight())
                     .isActive(true)
-                    .isFeatured(false)
                     .build();
             Photo savedPhoto = photoRepository.save(photo);
             log.info("event=photo_registered, photo_id={}, s3_key={}, user_id={}",
