@@ -46,6 +46,15 @@ public class PhotoController {
         return ApiResponse.success(photoService.generatePresignedUrl(userId, request));
     }
 
+    @Operation(summary = "임시 폴더 Presigned URL 생성", description = "tmp 폴더에 업로드하기 위한 Presigned URL을 생성합니다.")
+    @PostMapping("/tmp/presigned-url")
+    public ApiResponse<PhotoPresignedUrlResponse> generateTmpPresignedUrl(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestBody PhotoUploadRequest request) {
+        Long userId = userDetails.getId();
+        return ApiResponse.success(photoService.generateTmpPresignedUrl(userId, request));
+    }
+
     @Operation(summary = "사진 정보 등록", description = "S3에 업로드 완료 후, 파일 메타데이터를 서버에 등록합니다.")
     @PostMapping("/register")
     public ApiResponse<PhotoResponse> registerPhoto(

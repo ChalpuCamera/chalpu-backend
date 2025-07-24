@@ -69,6 +69,23 @@ public class PhotoService {
         }
     }
 
+    public PhotoPresignedUrlResponse generateTmpPresignedUrl(final Long userId, final PhotoUploadRequest request) {
+        try {
+            String s3Key = createTmpS3Key(request.getFileName());
+            URL presignedUrl = createPresignedUrl(s3Key);
+            log.info("event=tmp_presigned_url_generated, user_id={}, file_name={}, s3_key={}",
+                    userId, request.getFileName(), s3Key);
+            return PhotoPresignedUrlResponse.builder()
+                    .presignedUrl(presignedUrl.toString())
+                    .s3Key(s3Key)
+                    .build();
+        } catch (Exception e) {
+            log.error("event=tmp_presigned_url_generation_failed, user_id={}, file_name={}, error_message={}",
+                    userId, request.getFileName(), e.getMessage(), e);
+            throw new PhotoException(ErrorMessage.PRESIGNED_URL_GENERATION_FAILED);
+        }
+    }
+
     @Transactional
     public PhotoResponse registerPhoto(final Long userId, final PhotoRegisterRequest request) {
         try {
@@ -227,5 +244,15 @@ public class PhotoService {
         }
         final String fileExtension = fileName.substring(lastDotIndex);
         return "foodPhoto/" + UUID.randomUUID() + fileExtension;
+    }
+
+    private String createTmpS3Key(final String fileName) {
+        Objects.requireNonNull(fileName, "fileName must not be null");
+        int lastDotIndex = fileName.lastIndexOf('.');
+        if (lastDotIndex == -1) {
+            throw new PhotoException(ErrorMessage.PHOTO_INVALID_FORMAT);
+        }
+        final String fileExtension = fileName.substring(lastDotIndex);
+        return "tmp/" + UUID.randomUUID() + fileExtension;
     }
 }
