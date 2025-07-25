@@ -20,6 +20,7 @@ public class GuideResponse {
     private final String svgS3Key;
     private final String categoryName;
     private final String subCategoryName;
+    private final String updatedAt;
     private final List<String> tags;
 
     public static GuideResponse from(Guide guide, List<GuideTag> guideTags) {
@@ -32,6 +33,7 @@ public class GuideResponse {
                 .svgS3Key(guide.getSvgS3Key())
                 .categoryName(guide.getSubCategory().getCategory().getName())
                 .subCategoryName(guide.getSubCategory().getName())
+                .updatedAt(guide.getUpdatedAt().toString())
                 .tags(guideTags.stream()
                         .map(guideTag -> guideTag.getTag().getName())
                         .collect(Collectors.toList()))
