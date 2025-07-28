@@ -23,7 +23,7 @@ public class PhotoResponse {
     private Long storeId;
     
     @Schema(description = "음식 ID", example = "1")
-    private Long foodId;
+    private Long foodItemId;
     
     @Schema(description = "CloudFront를 통해 접근 가능한 이미지 전체 URL", example = "https://cdn.chalpu.com/photos/stores/1/image.jpg")
     private String imageUrl;
@@ -47,7 +47,7 @@ public class PhotoResponse {
         return PhotoResponse.builder()
                 .photoId(photo.getId())
                 .storeId(photo.getStore() != null ? photo.getStore().getId() : null)
-                .foodId(photo.getFoodItem() != null ? photo.getFoodItem().getId() : null)
+                .foodItemId(photo.getFoodItem() != null ? photo.getFoodItem().getId() : null)
                 .imageUrl(buildFullUrl(cloudfrontDomain, photo.getS3Key()))
                 .fileName(photo.getFileName())
                 .fileSize(photo.getFileSize())

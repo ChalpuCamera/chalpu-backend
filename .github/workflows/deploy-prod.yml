@@ -48,17 +48,17 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: chalpu-prod-app
-          IMAGE_TAG: ${{ github.sha }}
+          ECR_REPOSITORY: chalpu-app
+          IMAGE_TAG: prod-${{ github.sha }}
         run: |
           docker build --platform linux/amd64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:prod-latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:prod-latest
           
       - name: Update ECS service
         env:
-          ECS_CLUSTER: chalpu-ecs-cluster
+          ECS_CLUSTER: chalpu-ecs-prod-cluster
           ECS_SERVICE: chalpu-prod-app-service
         run: |
           aws ecs update-service \

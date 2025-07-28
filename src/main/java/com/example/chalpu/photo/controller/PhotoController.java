@@ -78,7 +78,6 @@ public class PhotoController {
             @PathVariable Long foodItemId,
             @PageableDefault(size = 10) Pageable pageable) {
         return ApiResponse.success(photoService.getPhotosByFoodItem(foodItemId, pageable));
-
     }
 
     @Operation(summary = "대표 사진 지정", description = "특정 음식에 대표 사진을 지정합니다.")

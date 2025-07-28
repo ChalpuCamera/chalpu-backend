@@ -147,7 +147,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             // 탈퇴한 사용자인지 확인
             if (existingUser.getDeletedAt() != null) {
                 // 탈퇴한 지 30일이 지났는지 확인
-                if (existingUser.getDeletedAt().plusDays(30).isBefore(LocalDateTime.now())) {
+                if (existingUser.getDeletedAt().plusDays(30).isAfter(LocalDateTime.now())) {
                     // 30일이 지났으면 계정 활성화 및 정보 업데이트 (재가입 처리)
                     userService.activateUser(existingUser.getId());
                     log.info("event=탈퇴 후 30일이 경과하여 계정을 복구합니다: {}", existingUser.getEmail());
