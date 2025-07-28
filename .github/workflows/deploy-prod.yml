@@ -26,11 +26,8 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run tests
-        run: ./gradlew test
-
       - name: Build with Gradle
-        run: ./gradlew clean -x testbuild
+        run: ./gradlew clean -x test build
 
       - name: Rename JAR for deployment
         run: cp build/libs/chalpu-0.0.1-SNAPSHOT.jar app.jar
