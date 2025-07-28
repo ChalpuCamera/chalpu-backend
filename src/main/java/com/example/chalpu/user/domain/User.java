@@ -2,10 +2,10 @@ package com.example.chalpu.user.domain;
 
 import com.example.chalpu.common.entity.BaseTimeEntity;
 import com.example.chalpu.oauth.model.AuthProvider;
-import com.example.chalpu.oauth.model.RefreshToken;
 import jakarta.persistence.*;
 import lombok.*;
-import java.sql.Timestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -52,10 +52,8 @@ public class User extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
     
-    // 프로필 이미지 URL
     private String picture;
 
-    // OAuth 정보 업데이트 (기존 사용자)
     public void updateOAuth2Info(String name, String picture) {
         this.name = name;
         this.picture = picture;
@@ -63,6 +61,11 @@ public class User extends BaseTimeEntity {
 
     public void softDelete() {
         this.isActive = false;
-        // 연관된 엔티티들은 Repository를 통해 서비스 레이어에서 처리
+        super.setDeletedAt(LocalDateTime.now());
+    }
+
+    public void activate() {
+        this.isActive = true;
+        super.setDeletedAt(null);
     }
 }

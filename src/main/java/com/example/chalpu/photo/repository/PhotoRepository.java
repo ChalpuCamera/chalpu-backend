@@ -55,4 +55,8 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
     @Modifying
     @Query("UPDATE Photo p SET p.isActive = false WHERE p.user.id = :userId")
     void softDeleteByUserId(@Param("userId") Long userId);
+
+    @Modifying
+    @Query("UPDATE Photo p SET p.isActive = true WHERE p.user.id = :userId")
+    void activateByUserId(@Param("userId") Long userId);
 } 

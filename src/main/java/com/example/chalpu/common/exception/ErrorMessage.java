@@ -156,7 +156,8 @@ public enum ErrorMessage {
     FCM_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FCM 메시지 전송에 실패했습니다."),
 
     // User Store Role
-    USER_STORE_ROLE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저의 가게 권한을 찾을 수 없습니다.");
+    USER_STORE_ROLE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저의 가게 권한을 찾을 수 없습니다."),
+    USER_DEACTIVATED_REJOIN_UNAVAILABLE(HttpStatus.FORBIDDEN, "탈퇴 후 30일 동안 재가입할 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

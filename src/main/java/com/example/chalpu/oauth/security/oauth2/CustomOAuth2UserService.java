@@ -22,7 +22,9 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import com.example.chalpu.user.service.UserService;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
@@ -35,6 +37,7 @@ import java.util.Optional;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final UserService userService;
     private final FCMTokenService fcmTokenService;
 
     /**
@@ -127,20 +130,33 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         AuthProvider provider = AuthProvider.valueOf(registrationId.toUpperCase());
         
         // 삭제된 사용자 포함하여 이메일로 사용자 조회
-        Optional<User> userOptional = userRepository.findByEmail(oAuth2UserInfo.getEmail());
+        Optional<User> userOptional = userRepository.findByEmailWithDeleted(oAuth2UserInfo.getEmail());
 
         // 이메일로 사용자를 찾았으면
         if (userOptional.isPresent()) {
             User existingUser = userOptional.get();
-            
+
             // 같은 제공자가 아니면 오류 발생
             if (existingUser.getProvider() != null && !existingUser.getProvider().equals(provider)) {
                 throw new OAuth2AuthenticationProcessingException(
-                        String.format("이미 %s 계정으로 가입되어 있습니다. %s 계정으로 로그인해 주세요.", 
-                        existingUser.getProvider(), existingUser.getProvider())
+                        String.format("이미 %s 계정으로 가입되어 있습니다. %s 계정으로 로그인해 주세요.",
+                                existingUser.getProvider(), existingUser.getProvider())
                 );
             }
             
+            // 탈퇴한 사용자인지 확인
+            if (existingUser.getDeletedAt() != null) {
+                // 탈퇴한 지 30일이 지났는지 확인
+                if (existingUser.getDeletedAt().plusDays(30).isBefore(LocalDateTime.now())) {
+                    // 30일이 지났으면 계정 활성화 및 정보 업데이트 (재가입 처리)
+                    userService.activateUser(existingUser.getId());
+                    log.info("event=탈퇴 후 30일이 경과하여 계정을 복구합니다: {}", existingUser.getEmail());
+                } else {
+                    // 30일이 지나지 않았으면 오류 발생
+                    throw new AuthException(ErrorMessage.USER_DEACTIVATED_REJOIN_UNAVAILABLE);
+                }
+            }
+
             // 정보 업데이트 후 반환
             return updateExistingUser(existingUser, oAuth2UserInfo);
         } else {

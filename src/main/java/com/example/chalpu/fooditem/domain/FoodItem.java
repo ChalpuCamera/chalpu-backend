@@ -56,6 +56,7 @@ public class FoodItem extends BaseTimeEntity {
         this.description = request.getDescription();
         this.ingredients = request.getIngredients();
         this.cookingMethod = request.getCookingMethod();
+        this.thumbnailUrl = request.getThumbnailUrl();
         this.price = request.getPrice();
         if (request.getIsActive() != null) {
             this.isActive = request.getIsActive();

@@ -78,6 +78,11 @@ public interface UserFCMTokenRepository extends JpaRepository<UserFCMToken, Long
     @Modifying
     @Query("UPDATE UserFCMToken t SET t.isActive = false WHERE t.userId = :userId")
     void deactivateAllTokensByUserId(@Param("userId") Long userId);
+
+
+    @Modifying
+    @Query("UPDATE UserFCMToken t SET t.isActive = true WHERE t.userId = :userId")
+    void activateByUserId(@Param("userId") Long userId);
     
     /**
      * 음식 아이템과 연관된 모든 토큰들을 소프트 딜리트 (사용자 기준)

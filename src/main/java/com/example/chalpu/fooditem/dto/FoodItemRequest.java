@@ -26,6 +26,9 @@ public class FoodItemRequest {
     
     @Schema(description = "조리법", example = "김치를 볶아 우린 후 끓인다")
     private String cookingMethod;
+
+    @Schema(description = "썸네일 url", example = "cdn.chalpu.com/food-thumbnail.jpg")
+    private String thumbnailUrl;
     
     @Schema(description = "가격", example = "8000")
     private BigDecimal price;

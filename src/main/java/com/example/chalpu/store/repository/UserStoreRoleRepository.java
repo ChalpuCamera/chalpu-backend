@@ -55,4 +55,8 @@ public interface UserStoreRoleRepository extends JpaRepository<UserStoreRole, Lo
     @Modifying
     @Query("UPDATE UserStoreRole usr SET usr.isActive = false WHERE usr.user.id = :userId")
     void softDeleteByUserId(@Param("userId") Long userId);
+
+    @Modifying
+    @Query("UPDATE UserStoreRole usr SET usr.isActive = true WHERE usr.user.id = :userId")
+    void activateByUserId(@Param("userId") Long userId);
 } 
