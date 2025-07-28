@@ -5,16 +5,16 @@ spring:
       max-request-size: 10MB
   config:
     activate:
-      on-profile: prod
+      on-profile: dev
 
   datasource:
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME_PROD}?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: validate # 프로덕션에서는 스키마를 자동으로 변경하지 않도록 validate 사용
+      ddl-auto: update # 프로덕션에서는 스키마를 자동으로 변경하지 않도록 validate 사용
     show-sql: false
     properties:
       hibernate:
@@ -26,7 +26,7 @@ spring:
           kakao:
             client-id: ${KAKAO_CLIENT_ID} # 웹용 클라이언트 ID
             client-secret: ${KAKAO_CLIENT_SECRET}
-            redirect-uri: "https://prod.chalpu.com/api/login/oauth2/code/{registrationId}"
+            redirect-uri: "http://43.201.106.31/api/login/oauth2/code/{registrationId}"
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
             scope:
@@ -35,7 +35,7 @@ spring:
           naver:
             client-id: ${NAVER_CLIENT_ID} # 웹용 클라이언트 ID
             client-secret: ${NAVER_CLIENT_SECRET}
-            redirect-uri: "https://prod.chalpu.com/api/login/oauth2/code/{registrationId}"
+            redirect-uri: "http://43.201.106.31/api/login/oauth2/code/{registrationId}"
             authorization-grant-type: authorization_code
             scope:
               - name
