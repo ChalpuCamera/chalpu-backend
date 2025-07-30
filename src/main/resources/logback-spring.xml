@@ -8,7 +8,7 @@
     </appender>
 
     <!-- Loki Appender for Production -->
-    <springProfile name="prod">
+    <springProfile name="dev">
         <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
             <http>
                 <url>http://${MONITORING_EC2_IP}:3100/loki/api/v1/push</url>
