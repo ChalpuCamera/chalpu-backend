@@ -21,6 +21,9 @@ public class PhotoResponse {
     
     @Schema(description = "매장 ID", example = "1")
     private Long storeId;
+
+    @Schema(description = "사용자 ID", example = "1")
+    private Long userId;
     
     @Schema(description = "음식 ID", example = "1")
     private Long foodItemId;
@@ -50,6 +53,7 @@ public class PhotoResponse {
                 .foodItemId(photo.getFoodItem() != null ? photo.getFoodItem().getId() : null)
                 .imageUrl(buildFullUrl(cloudfrontDomain, photo.getS3Key()))
                 .fileName(photo.getFileName())
+                .userId(photo.getUser() != null ? photo.getUser().getId() : null)
                 .fileSize(photo.getFileSize())
                 .imageWidth(photo.getImageWidth())
                 .imageHeight(photo.getImageHeight())

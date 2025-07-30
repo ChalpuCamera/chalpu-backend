@@ -45,6 +45,7 @@ public class PhotoService {
     private final UserStoreRoleService userStoreRoleService;
     private final FoodItemRepository foodItemRepository;
     private final PhotoRoomService photoRoomService;
+    private final UserRepository userRepository;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -89,6 +90,9 @@ public class PhotoService {
     @Transactional
     public PhotoResponse registerPhoto(final Long userId, final PhotoRegisterRequest request) {
         try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new PhotoException(ErrorMessage.USER_NOT_FOUND));
+
             Store store = storeRepository.findById(request.getStoreId())
                     .orElseThrow(() -> new PhotoException(ErrorMessage.STORE_NOT_FOUND));
 
@@ -98,6 +102,7 @@ public class PhotoService {
                         .orElseThrow(() -> new PhotoException(ErrorMessage.FOODITEM_NOT_FOUND));
             }
             Photo photo = Photo.builder()
+                    .user(user)
                     .s3Key(request.getS3Key())
                     .fileName(request.getFileName())
                     .store(store)

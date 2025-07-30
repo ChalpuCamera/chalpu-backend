@@ -14,7 +14,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: update # 필요한 테이블을 자동으로 생성
+      ddl-auto: validate # 필요한 테이블을 자동으로 생성
     show-sql: false
     properties:
       hibernate:
