@@ -22,6 +22,9 @@ public class SubCategory extends BaseTimeEntity {
     @Column(nullable = false, length = 50)
     private String name;
 
+    @Column(nullable = false, length = 50)
+    private String tips;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
