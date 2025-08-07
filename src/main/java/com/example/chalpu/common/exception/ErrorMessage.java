@@ -157,7 +157,13 @@ public enum ErrorMessage {
 
     // User Store Role
     USER_STORE_ROLE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저의 가게 권한을 찾을 수 없습니다."),
-    USER_DEACTIVATED_REJOIN_UNAVAILABLE(HttpStatus.FORBIDDEN, "탈퇴 후 30일 동안 재가입할 수 없습니다.");
+    USER_DEACTIVATED_REJOIN_UNAVAILABLE(HttpStatus.FORBIDDEN, "탈퇴 후 30일 동안 재가입할 수 없습니다."),
+
+    // Feedback
+    FEEDBACK_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "피드백 등록에 실패했습니다."),
+    FEEDBACK_CONTENT_EMPTY(HttpStatus.BAD_REQUEST, "피드백 내용이 비어있습니다."),
+    FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "피드백을 찾을 수 없습니다."),
+    FEEDBACK_ACCESS_DENIED(HttpStatus.FORBIDDEN, "피드백에 대한 접근 권한이 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
