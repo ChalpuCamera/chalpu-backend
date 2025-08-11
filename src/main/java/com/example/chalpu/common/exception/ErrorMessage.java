@@ -163,7 +163,25 @@ public enum ErrorMessage {
     FEEDBACK_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "피드백 등록에 실패했습니다."),
     FEEDBACK_CONTENT_EMPTY(HttpStatus.BAD_REQUEST, "피드백 내용이 비어있습니다."),
     FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "피드백을 찾을 수 없습니다."),
-    FEEDBACK_ACCESS_DENIED(HttpStatus.FORBIDDEN, "피드백에 대한 접근 권한이 없습니다.");
+    FEEDBACK_ACCESS_DENIED(HttpStatus.FORBIDDEN, "피드백에 대한 접근 권한이 없습니다."),
+
+    // Customer 관련 에러
+    CUSTOMER_NOT_FOUND(HttpStatus.NOT_FOUND, "고객을 찾을 수 없습니다."),
+    CUSTOMER_OAUTH_FAILED(HttpStatus.UNAUTHORIZED, "고객 소셜 로그인에 실패했습니다."),
+    CUSTOMER_PROFILE_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "고객 프로필 업데이트에 실패했습니다."),
+    INSUFFICIENT_REWARD_COUNT(HttpStatus.BAD_REQUEST, "보유 리워드 횟수가 부족합니다."),
+
+    // Survey 관련 에러
+    SURVEY_NOT_FOUND(HttpStatus.NOT_FOUND, "설문지를 찾을 수 없습니다."),
+    SURVEY_QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "설문 질문을 찾을 수 없습니다."),
+    SURVEY_ANSWER_INVALID(HttpStatus.BAD_REQUEST, "설문 답변이 유효하지 않습니다."),
+
+    // Reward 관련 에러
+    REWARD_NOT_FOUND(HttpStatus.NOT_FOUND, "리워드를 찾을 수 없습니다."),
+    REWARD_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "사용할 수 없는 리워드입니다."),
+    REWARD_INSUFFICIENT_FEEDBACK(HttpStatus.BAD_REQUEST, "리워드 조건을 만족하지 않습니다."),
+    REWARD_REDEMPTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "리워드 교환에 실패했습니다."),
+    REWARD_REDEMPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "리워드 교환 내역을 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
