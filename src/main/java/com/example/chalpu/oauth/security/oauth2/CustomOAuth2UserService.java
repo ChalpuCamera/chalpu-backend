@@ -3,6 +3,8 @@ package com.example.chalpu.oauth.security.oauth2;
 import com.example.chalpu.common.exception.AuthException;
 import com.example.chalpu.common.exception.ErrorMessage;
 import com.example.chalpu.common.exception.OAuth2AuthenticationProcessingException;
+import com.example.chalpu.customer.domain.Customer;
+import com.example.chalpu.customer.service.CustomerService;
 import com.example.chalpu.fcm.dto.FCMTokenRequest;
 import com.example.chalpu.fcm.service.FCMTokenService;
 import com.example.chalpu.oauth.model.AuthProvider;
@@ -15,6 +17,7 @@ import com.example.chalpu.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -34,9 +37,11 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final CustomerService customerService;
     private final UserService userService;
     private final FCMTokenService fcmTokenService;
 
@@ -70,11 +75,22 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // 이메일 확인 (Validate email)
         validateEmail(oAuth2UserInfo);
 
-        // 사용자 조회 또는 생성 (Find or create user)
-        User user = findOrCreateUser(oAuth2UserInfo, registrationId);
+        // Customer만 처리
+        Customer customer = processOAuth2Customer(oAuth2UserInfo, registrationId);
+        
+        // Customer 정보로 임시 User 객체 생성 (UserDetailsImpl 호환성을 위해)
+        User tempUser = User.builder()
+                .id(customer.getId())
+                .email(customer.getEmail())
+                .name(customer.getNickname())
+                .picture(customer.getPicture())
+                .socialId(customer.getSocialId())
+                .provider(customer.getProvider())
+                .role(Role.ROLE_USER)
+                .build();
 
         // UserDetails 객체 생성 및 반환 (Build and return UserDetails)
-        return UserDetailsImpl.build(user, oAuth2User.getAttributes());
+        return UserDetailsImpl.build(tempUser, oAuth2User.getAttributes());
     }
 
     /**
@@ -103,13 +119,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     /**
-     * OAuth2 제공자별 사용자 정보 처리 (기존 호환성을 위한 오버로드)
+     * OAuth2 Customer 처리 메서드 (CustomerService 위임)
      * @param userInfo OAuth2 사용자 정보
-     * @param providerName 제공자 이름 (google, kakao, naver, apple 등)
-     * @return 처리된 사용자 엔티티
+     * @param providerType 제공자 타입
+     * @return 처리된 Customer 엔티티
      */
-    public User processOAuth2User(OAuth2UserInfo userInfo, String providerName) {
-        return processOAuth2User(userInfo, providerName, null, null);
+    public Customer processOAuth2Customer(OAuth2UserInfo userInfo, String providerType) {
+        return customerService.processOAuth2Customer(userInfo, providerType);
     }
 
     /**
