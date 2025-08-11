@@ -91,7 +91,7 @@ public class CustomerFeedbackService {
         log.info("고객 피드백 생성 완료: feedbackId={}, customerId={}, foodId={}, reward_count_earned=1", 
                 savedFeedback.getId(), customerId, request.getFoodId());
 
-        return FeedbackResponse.from(savedFeedback);
+        return mapToFeedbackResponse(savedFeedback);
     }
 
     private void saveSurveyAnswers(CustomerFeedback feedback, List<SurveyAnswerRequest> answerRequests) {
