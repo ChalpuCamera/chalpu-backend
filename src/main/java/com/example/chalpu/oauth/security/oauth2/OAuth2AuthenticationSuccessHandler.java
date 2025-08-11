@@ -1,10 +1,12 @@
 package com.example.chalpu.oauth.security.oauth2;
 
+import com.example.chalpu.customer.domain.Customer;
+import com.example.chalpu.customer.repository.CustomerRepository;
+import com.example.chalpu.customer.service.CustomerRefreshTokenService;
 import com.example.chalpu.oauth.dto.TokenDTO;
 import com.example.chalpu.oauth.security.jwt.JwtTokenProvider;
 import com.example.chalpu.oauth.security.jwt.UserDetailsImpl;
-import com.example.chalpu.oauth.service.AuthService;
-import com.example.chalpu.oauth.service.RefreshTokenService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +25,9 @@ import java.nio.charset.StandardCharsets;
 @Component
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
-
-    private final JwtTokenProvider authService;
     private final JwtTokenProvider jwtTokenProvider;
-    private final RefreshTokenService refreshTokenService;
+    private final CustomerRepository customerRepository;
+    private final CustomerRefreshTokenService customerRefreshTokenService;
 
     @Value("${oauth2.redirect.success-url}")
     private String redirectSuccessUrl;
@@ -40,20 +41,31 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         try {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-            // AuthService를 통해 토큰 생성 (UserDetailsImpl 직접 전달)
-            String role = userDetails.getAuthorities().iterator().next().getAuthority();
-            TokenDTO tokenDTO = jwtTokenProvider.generateTokens(userDetails.getId(), userDetails.getEmail(), role);
+            // AuthService를 통해 토큰 생성 (Customer용 역할로 설정)
+            TokenDTO tokenDTO = jwtTokenProvider.generateTokens(userDetails.getId(), userDetails.getEmail(), "CUSTOMER");
+
+            // Customer 조회
+            Customer customer = customerRepository.findById(userDetails.getId())
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
             
-            // Refresh Token DB에 저장
-            refreshTokenService.saveRefreshToken(tokenDTO.getRefreshToken(), userDetails.getId());
+            // Customer Refresh Token 저장
+            customerRefreshTokenService.createRefreshToken(customer, tokenDTO.getRefreshToken());
+
+
+            // Refresh Token을 HttpOnly 쿠키로 설정
+            Cookie refreshTokenCookie = new Cookie("refreshToken", tokenDTO.getRefreshToken());
+            refreshTokenCookie.setHttpOnly(true);
+            refreshTokenCookie.setSecure(true);
+            refreshTokenCookie.setPath("/");
+            refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 7일
+            response.addCookie(refreshTokenCookie);
 
             log.info("OAuth2 로그인 성공: userId={}, email={}, provider={}", 
                     userDetails.getId(), userDetails.getEmail(), userDetails.getProvider());
 
-            // 리다이렉트 URL에 TokenDTO 정보 및 userId 포함
+            // Access Token과 userId만 URL 파라미터로 전달
             String targetUrl = UriComponentsBuilder.fromUriString(redirectSuccessUrl)
                     .queryParam("accessToken", tokenDTO.getAccessToken())
-                    .queryParam("refreshToken", tokenDTO.getRefreshToken())
                     .queryParam("userId", userDetails.getId())
                     .build().toUriString();
 

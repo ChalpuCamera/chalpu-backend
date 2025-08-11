@@ -58,12 +58,4 @@ public class SurveyAnswer {
             case TEXT -> hasTextAnswer();
         };
     }
-
-    public boolean isNumericAnswer() {
-        return this.question.getQuestionType().isNumericType();
-    }
-
-    public boolean isTextAnswer() {
-        return this.question.getQuestionType().isTextType();
-    }
 }
