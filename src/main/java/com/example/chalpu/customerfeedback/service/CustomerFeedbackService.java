@@ -167,13 +167,11 @@ public class CustomerFeedbackService {
     }
 
     @Transactional(readOnly = true)
-    public List<FeedbackResponse> getStoreFeedbacks(Long storeId) {
-        List<CustomerFeedback> feedbacks = feedbackRepository
-                .findByStoreIdAndIsActiveTrueOrderByCreatedAtDesc(storeId);
+    public Page<FeedbackResponse> getStoreFeedbacks(Long storeId, Pageable pageable) {
+        Page<CustomerFeedback> feedbacks = feedbackRepository
+                .findByStoreIdAndIsActiveTrueOrderByCreatedAtDesc(storeId, pageable);
 
-        return feedbacks.stream()
-                .map(this::mapToFeedbackResponse)
-                .collect(Collectors.toList());
+        return feedbacks.map(this::mapToFeedbackResponse);
     }
 
     @Transactional(readOnly = true)
