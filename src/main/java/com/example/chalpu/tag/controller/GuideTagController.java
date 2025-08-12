@@ -22,14 +22,14 @@ public class GuideTagController {
 
     @Operation(summary = "가이드에 태그 추가", description = "특정 가이드에 새로운 태그를 연결합니다. 태그가 DB에 없으면 새로 생성됩니다.")
     @PostMapping
-    public ResponseEntity<ApiResponse<TagResponse>> addTagToGuide(@PathVariable Long guideId, @RequestBody TagRequest request) {
+    public ResponseEntity<ApiResponse<TagResponse>> addTagToGuide(@PathVariable("guideId") Long guideId, @RequestBody TagRequest request) {
         TagResponse response = guideTagService.addTagToGuide(guideId, request.getTagName());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "가이드의 태그 삭제", description = "특정 가이드와 특정 태그의 연결을 끊습니다.")
     @DeleteMapping("/{tagId}")
-    public ResponseEntity<ApiResponse<Void>> removeTagFromGuide(@PathVariable Long guideId, @PathVariable Long tagId) {
+    public ResponseEntity<ApiResponse<Void>> removeTagFromGuide(@PathVariable("guideId") Long guideId, @PathVariable("tagId") Long tagId) {
         guideTagService.removeTagFromGuide(guideId, tagId);
         return ResponseEntity.ok(ApiResponse.success());
     }
@@ -38,6 +38,16 @@ public class GuideTagController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<TagResponse>>> getTagsForGuide(@PathVariable Long guideId) {
         List<TagResponse> response = guideTagService.getTagsForGuide(guideId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @Operation(summary = "가이드의 태그 수정", description = "특정 가이드에 연결된 태그 중 수정")
+    @PutMapping("/{tagId}")
+    public ResponseEntity<ApiResponse<TagResponse>> updateTagForGuide(
+            @PathVariable("guideId") Long guideId,
+            @PathVariable("tagId") Long tagId,
+            @RequestBody TagRequest request) {
+        TagResponse response = guideTagService.updateTagForGuide(guideId, tagId, request.getTagName());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

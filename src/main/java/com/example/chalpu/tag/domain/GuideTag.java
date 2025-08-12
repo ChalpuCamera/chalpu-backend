@@ -64,4 +64,8 @@ public class GuideTag extends BaseTimeEntity {
     public void activate() {
         this.isActive = true;
     }
+
+    public void updateTag(Tag newTag) {
+        this.tag = newTag;
+    }
 } 
