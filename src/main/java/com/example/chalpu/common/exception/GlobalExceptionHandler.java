@@ -109,6 +109,50 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * CustomerException 처리
+     */
+    @ExceptionHandler(CustomerException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCustomerException(CustomerException ex) {
+        ErrorMessage errorMessage = ex.getErrorMessage();
+        logger.error("CustomerException: {}", errorMessage.getMessage());
+        return ResponseEntity.status(errorMessage.getHttpStatus())
+                .body(ApiResponse.error(errorMessage.getHttpStatus().value(), errorMessage.getMessage()));
+    }
+
+    /**
+     * FeedbackException 처리
+     */
+    @ExceptionHandler(FeedbackException.class)
+    public ResponseEntity<ApiResponse<Void>> handleFeedbackException(FeedbackException ex) {
+        ErrorMessage errorMessage = ex.getErrorMessage();
+        logger.error("FeedbackException: {}", errorMessage.getMessage());
+        return ResponseEntity.status(errorMessage.getHttpStatus())
+                .body(ApiResponse.error(errorMessage.getHttpStatus().value(), errorMessage.getMessage()));
+    }
+
+    /**
+     * SurveyException 처리
+     */
+    @ExceptionHandler(SurveyException.class)
+    public ResponseEntity<ApiResponse<Void>> handleSurveyException(SurveyException ex) {
+        ErrorMessage errorMessage = ex.getErrorMessage();
+        logger.error("SurveyException: {}", errorMessage.getMessage());
+        return ResponseEntity.status(errorMessage.getHttpStatus())
+                .body(ApiResponse.error(errorMessage.getHttpStatus().value(), errorMessage.getMessage()));
+    }
+
+    /**
+     * RewardException 처리
+     */
+    @ExceptionHandler(RewardException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRewardException(RewardException ex) {
+        ErrorMessage errorMessage = ex.getErrorMessage();
+        logger.error("RewardException: {}", errorMessage.getMessage());
+        return ResponseEntity.status(errorMessage.getHttpStatus())
+                .body(ApiResponse.error(errorMessage.getHttpStatus().value(), errorMessage.getMessage()));
+    }
+
+    /**
      * 유효성 검사 실패 예외 처리
      */
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})

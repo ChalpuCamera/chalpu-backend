@@ -74,4 +74,20 @@ public class GuideTagService {
                 .map(guideTag -> TagResponse.from(guideTag.getTag()))
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public TagResponse updateTagForGuide(Long guideId, Long tagId, String tagName) {
+        // 기존 GuideTag 조회
+        GuideTag guideTag = guideTagRepository.findByGuideIdAndTagIdAndIsActiveTrue(guideId, tagId)
+                .orElseThrow(() -> new GuideTagException(ErrorMessage.GUIDE_TAG_NOT_FOUND));
+
+        // 태그명으로 기존 태그 찾기 또는 새 태그 생성
+        Tag newTag = tagRepository.findByNameAndIsActiveTrue(tagName)
+                .orElseGet(() -> tagRepository.save(Tag.builder().name(tagName).build()));
+
+        // GuideTag의 태그를 새 태그로 변경
+        guideTag.updateTag(newTag);
+
+        return TagResponse.from(newTag);
+    }
 }
