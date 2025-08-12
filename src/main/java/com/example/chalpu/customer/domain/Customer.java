@@ -46,12 +46,16 @@ public class Customer extends BaseTimeEntity {
     @Column(length = 20)
     private AuthProvider provider;
 
+    
     @Column(length = 255)
     private String picture;
 
     @Builder.Default
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
+
+    @Embedded
+    private CustomerTaste customerTaste;
 
     public static Customer createCustomer(String email, String nickname, String socialId, 
                                         AuthProvider provider, String picture) {
@@ -68,6 +72,13 @@ public class Customer extends BaseTimeEntity {
         this.nickname = nickname;
         this.gender = gender;
         this.age = age;
+    }
+
+    public void updateTastePreferences(CustomerTaste customerTaste) {
+        if (customerTaste != null) {
+            customerTaste.validateTasteValues();
+        }
+        this.customerTaste = customerTaste;
     }
 
     public void updateOAuth2Info(String nickname, String picture) {
