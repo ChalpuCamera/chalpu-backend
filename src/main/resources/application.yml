@@ -1,4 +1,4 @@
 spring:
   profiles:
-    active: dev
+    active: dev # 기본 프로파일을 local로 설정, 배포 시 prod로 변경
 
