@@ -39,7 +39,7 @@ public class Guide extends BaseTimeEntity {
     @Column(name = "guide_id")
     private Long id;
 
-    @Column(length = 500, nullable = false, unique = true)
+    @Column(length = 500, unique = true)
     private String guideS3Key;
 
     @Column(length = 500, nullable = false, unique = true)
