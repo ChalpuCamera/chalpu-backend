@@ -22,7 +22,7 @@ public class SubCategory extends BaseTimeEntity {
     @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 2048)
     private String tips;
 
     @ManyToOne(fetch = FetchType.LAZY)
