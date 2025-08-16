@@ -104,6 +104,9 @@ public enum ErrorMessage {
 
     // 앱 버전 관련 에러
     APP_VERSION_NOT_FOUND(NOT_FOUND, "앱 버전 정보를 찾을 수 없습니다."),
+    APP_VERSION_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "앱 버전 생성에 실패했습니다."),
+    APP_VERSION_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "앱 버전 수정에 실패했습니다."),
+    APP_VERSION_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "앱 버전 삭제에 실패했습니다."),
 
     // 공지사항 관련 에러
     NOTICE_NOT_FOUND(NOT_FOUND, "공지사항을 찾을 수 없습니다."),
