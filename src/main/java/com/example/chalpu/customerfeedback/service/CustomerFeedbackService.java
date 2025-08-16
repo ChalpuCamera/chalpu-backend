@@ -121,10 +121,10 @@ public class CustomerFeedbackService {
                     SurveyAnswer answer = SurveyAnswer.createAnswer(feedback, question, 
                             request.getAnswerText(), request.getNumericValue());
                     
-                    // 답변 유효성 검증
-                    if (!answer.isValidAnswer()) {
-                        throw new SurveyException(ErrorMessage.SURVEY_ANSWER_INVALID);
-                    }
+                //     // 답변 유효성 검증
+                //     if (!answer.isValidAnswer()) {
+                //         throw new SurveyException(ErrorMessage.SURVEY_ANSWER_INVALID);
+                //     }
                     
                     return answer;
                 })

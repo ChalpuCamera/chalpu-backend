@@ -3,6 +3,6 @@ package com.example.chalpu.feedback.dto;
 import lombok.Data;
 
 @Data
-public abstract class FeedbackRequestDto {
+public class FeedbackRequestDto {
     private String content;
 }

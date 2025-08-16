@@ -38,8 +38,7 @@ public class FeedbackController {
                     examples = @ExampleObject(
                             value = """
                 {
-                  "content": "김치찌개 맛있게 끓이는 법 알려주세요",
-                  "foodName": "김치찌개"
+                  "content": "김치찌개 맛있게 끓이는 법 알려주세요"
                 }
                 """
                     )
