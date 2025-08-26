@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -134,7 +133,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
      */
     private void validateEmail(OAuth2UserInfo oAuth2UserInfo) {
         if (!StringUtils.hasText(oAuth2UserInfo.getEmail())) {
-            throw new OAuth2AuthenticationProcessingException("OAuth2 제공자로부터 이메일을 찾을 수 없습니다");
+            throw new OAuth2AuthenticationProcessingException(ErrorMessage.OAUTH_EMAIL_NOT_FOUND);
         }
     }
 
@@ -154,10 +153,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             // 같은 제공자가 아니면 오류 발생
             if (existingUser.getProvider() != null && !existingUser.getProvider().equals(provider)) {
-                throw new OAuth2AuthenticationProcessingException(
-                        String.format("이미 %s 계정으로 가입되어 있습니다. %s 계정으로 로그인해 주세요.",
-                                existingUser.getProvider(), existingUser.getProvider())
-                );
+                throw new OAuth2AuthenticationProcessingException(ErrorMessage.OAUTH_PROVIDER_CONFLICT);
             }
             
             // 탈퇴한 사용자인지 확인
