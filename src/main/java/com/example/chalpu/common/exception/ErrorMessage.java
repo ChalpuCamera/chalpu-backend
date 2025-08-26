@@ -20,6 +20,8 @@ public enum ErrorMessage {
     OAUTH_USER_INFO_NOT_FOUND(BAD_REQUEST, "OAuth 사용자 정보를 가져올 수 없습니다."),
     OAUTH_PROVIDER_NOT_SUPPORTED(BAD_REQUEST, "지원하지 않는 OAuth 제공자입니다."),
     OAUTH_AUTHENTICATION_FAILED(UNAUTHORIZED, "OAuth 인증에 실패했습니다."),
+    OAUTH_PROVIDER_CONFLICT(HttpStatus.CONFLICT, "이미 다른 제공자로 가입된 계정입니다."),
+    OAUTH_EMAIL_NOT_FOUND(BAD_REQUEST, "OAuth2 제공자로부터 이메일을 찾을 수 없습니다."),
     
     // Apple 관련 에러
     APPLE_IDENTITY_TOKEN_INVALID(UNAUTHORIZED, "Apple Identity Token이 유효하지 않습니다."),

@@ -1,9 +1,11 @@
 package com.example.chalpu.common.exception;
 
-import org.springframework.security.core.AuthenticationException;
-
-public class OAuth2AuthenticationProcessingException extends AuthenticationException {
-    public OAuth2AuthenticationProcessingException(String msg) {
-        super(msg);
+/**
+ * OAuth2 인증 처리 예외
+ */
+public class OAuth2AuthenticationProcessingException extends BaseException {
+    
+    public OAuth2AuthenticationProcessingException(ErrorMessage errorMessage) {
+        super(errorMessage);
     }
 }
