@@ -30,9 +30,8 @@ public class GuideTagService {
     @Transactional
     public TagResponse addTagToGuide(Long guideId, String tagName) {
         // Guide 존재 여부만 확인 (엔티티 조회 없이)
-        if (!guideRepository.existsById(guideId)) {
-            throw new NoticeException(ErrorMessage.GUIDE_NOT_FOUND);
-        }
+        Guide guide = guideRepository.findById(guideId)
+                .orElseThrow(() -> new NoticeException(ErrorMessage.GUIDE_NOT_FOUND));
 
         // Tag 조회 또는 생성
         Tag tag = tagRepository.findByNameAndIsActiveTrue(tagName)
@@ -49,20 +48,21 @@ public class GuideTagService {
                 guideTag.activate();
             }
         } else {
-            // Guide 엔티티가 필요한 경우에만 조회
-            Guide guide = guideRepository.findById(guideId)
-                    .orElseThrow(() -> new NoticeException(ErrorMessage.GUIDE_NOT_FOUND));
             guideTagRepository.save(GuideTag.builder().guide(guide).tag(tag).build());
         }
-
+        guide.updateDate();
         return TagResponse.from(tag);
     }
 
     @Transactional
     public void removeTagFromGuide(Long guideId, Long tagId) {
+        Guide guide = guideRepository.findById(guideId)
+                .orElseThrow(() -> new NoticeException(ErrorMessage.GUIDE_NOT_FOUND));
+
         GuideTag guideTag = guideTagRepository.findByGuideIdAndTagIdAndIsActiveTrue(guideId, tagId)
                 .orElseThrow(() -> new GuideTagException(ErrorMessage.GUIDE_TAG_NOT_FOUND));
         guideTag.softDelete();
+        guide.updateDate();
     }
 
     public List<TagResponse> getTagsForGuide(Long guideId) {
@@ -77,6 +77,9 @@ public class GuideTagService {
 
     @Transactional
     public TagResponse updateTagForGuide(Long guideId, Long tagId, String tagName) {
+        Guide guide = guideRepository.findById(guideId)
+                .orElseThrow(() -> new NoticeException(ErrorMessage.GUIDE_NOT_FOUND));
+
         // 기존 GuideTag 조회
         GuideTag guideTag = guideTagRepository.findByGuideIdAndTagIdAndIsActiveTrue(guideId, tagId)
                 .orElseThrow(() -> new GuideTagException(ErrorMessage.GUIDE_TAG_NOT_FOUND));
@@ -87,7 +90,7 @@ public class GuideTagService {
 
         // GuideTag의 태그를 새 태그로 변경
         guideTag.updateTag(newTag);
-
+        guide.updateDate();
         return TagResponse.from(newTag);
     }
 }

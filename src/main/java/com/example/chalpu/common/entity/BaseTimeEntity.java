@@ -28,4 +28,5 @@ public abstract class BaseTimeEntity {
     protected void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
     }
+    protected void setUpdatedAt(LocalDateTime updatedAt) {this.updatedAt = updatedAt;}
 }

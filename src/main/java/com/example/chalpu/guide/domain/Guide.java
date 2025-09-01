@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 
 @NamedEntityGraph(
     name = "Guide.withSubCategoryAndCategory",
@@ -82,6 +84,10 @@ public class Guide extends BaseTimeEntity {
         if (subCategory != null) {
             this.subCategory = subCategory;
         }
+    }
+
+    public void updateDate() {
+        setUpdatedAt(LocalDateTime.now());
     }
 
     public void softDelete() {
