@@ -55,6 +55,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/campaigns/campaign-platforms").permitAll()
                         // 공지사항/홈 광고 배너 관련 경로
                         .requestMatchers("/api/notices/**").permitAll()
+                        // 가이드 관련 경로
+                        .requestMatchers("/api/guides/**").permitAll()
                         // 앱 버전 관련 경로
                         .requestMatchers("/api/home/version/**").permitAll()
                         // 나머지는 인증 필요
