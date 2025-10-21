@@ -2,11 +2,12 @@ package com.example.chalpu.guide.controller;
 
 import com.example.chalpu.common.response.ApiResponse;
 import com.example.chalpu.common.response.PageResponse;
+import com.example.chalpu.guide.dto.GuideDeleteRequest;
+import com.example.chalpu.guide.dto.GuideLastModifiedResponse;
 import com.example.chalpu.guide.dto.GuidePresignedUrlRequest;
 import com.example.chalpu.guide.dto.GuidePresignedUrlsResponse;
 import com.example.chalpu.guide.dto.GuideRegisterRequest;
 import com.example.chalpu.guide.dto.GuideResponse;
-import com.example.chalpu.guide.dto.GuideDeleteRequest;
 import com.example.chalpu.guide.dto.GuideUpdateRequest;
 import com.example.chalpu.guide.service.GuideService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -56,6 +57,13 @@ public class GuideController {
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<GuideResponse>>> getGuides(Pageable pageable) {
         PageResponse<GuideResponse> response = guideService.findAll(pageable);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @Operation(summary = "가이드 최근 수정 시각 조회", description = "모든 가이드의 추가/수정/삭제 작업 중 가장 최근 시각을 조회합니다.")
+    @GetMapping("/last-modified")
+    public ResponseEntity<ApiResponse<GuideLastModifiedResponse>> getLastModifiedTime() {
+        GuideLastModifiedResponse response = guideService.getLastModifiedTime();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
