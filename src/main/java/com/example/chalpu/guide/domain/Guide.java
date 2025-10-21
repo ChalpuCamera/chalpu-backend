@@ -29,7 +29,13 @@ import java.time.LocalDateTime;
 )
 @Builder
 @Entity
-@Table(name = "guides")
+@Table(
+    name = "guides",
+    indexes = {
+        @Index(name = "idx_guide_updated_at", columnList = "updatedAt"),
+        @Index(name = "idx_guide_sub_category_is_active", columnList = "sub_category_id, isActive")
+    }
+)
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

@@ -6,6 +6,7 @@ import com.example.chalpu.common.exception.S3Exception;
 import com.example.chalpu.common.response.PageResponse;
 import com.example.chalpu.guide.domain.Guide;
 import com.example.chalpu.guide.domain.SubCategory;
+import com.example.chalpu.guide.dto.GuideLastModifiedResponse;
 import com.example.chalpu.guide.dto.GuidePresignedUrlRequest;
 import com.example.chalpu.guide.dto.GuidePresignedUrlsResponse;
 import com.example.chalpu.guide.dto.GuideRegisterRequest;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -92,6 +94,7 @@ public class GuideService {
                 .build();
         Guide savedGuide = guideRepository.save(guide);
         List<Tag> tags = findOrCreateTags(request.getTags());
+
         List<GuideTag> guideTags = tags.stream()
                 .map(tag -> GuideTag.builder().guide(savedGuide).tag(tag).build())
                 .collect(Collectors.toList());
@@ -131,6 +134,12 @@ public class GuideService {
                 .map(guide -> GuideResponse.from(guide, guideTagRepository.findByGuideAndIsActiveTrue(guide)))
                 .collect(Collectors.toList());
         return PageResponse.from(new PageImpl<>(guideResponses, pageable, guidesPage.getTotalElements()));
+    }
+
+    public GuideLastModifiedResponse getLastModifiedTime() {
+        LocalDateTime lastModifiedAt = guideRepository.findMaxUpdatedAt();
+        log.info("event=last_modified_time_retrieved, last_modified_at={}", lastModifiedAt);
+        return GuideLastModifiedResponse.from(lastModifiedAt);
     }
 
     public PageResponse<GuideResponse> findAllBySubCategory(Long subCategoryId, Pageable pageable) {
